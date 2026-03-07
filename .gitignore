@@ -7,3 +7,5 @@ data/certificates/
 data/chroma/
 *.log
 .env.backup
+.env.backup
+.claude/

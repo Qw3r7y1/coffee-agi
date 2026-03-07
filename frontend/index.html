@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Coffee AGI — Maillard Coffee Roasters</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brown:       #111111;
+    --brown-mid:   #2a2a2a;
+    --brown-light: #444444;
+    --cream:       #ffffff;
+    --cream-dark:  #f3f3f3;
+    --gold:        #b8860b;
+    --gold-light:  #d4a017;
+    --green:       #166534;
+    --red:         #991b1b;
+    --text:        #111111;
+    --muted:       #666666;
+    --border:      #e0e0e0;
+    --radius:      14px;
+    --shadow:      0 2px 12px rgba(0,0,0,.10);
+  }
+
+  html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a1a; color: var(--text); }
+
+  /* ── Layout ── */
+  .shell { display: flex; flex-direction: column; height: 100vh; max-width: 960px; margin: 0 auto; background: var(--cream); box-shadow: 0 0 40px rgba(0,0,0,.35); }
+
+  /* ── Header ── */
+  header { background: var(--brown); color: #fff; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+  header h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -.5px; }
+  header p  { font-size: .72rem; color: #aaaaaa; margin-top: 2px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* ── Tabs ── */
+  nav { display: flex; background: #fff; border-bottom: 2px solid var(--border); }
+  nav button { flex: 1; padding: 13px 8px; border: none; background: none; cursor: pointer; font-size: .82rem; font-weight: 600; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color .15s, border-color .15s; }
+  nav button.active { color: var(--brown); border-bottom-color: var(--brown); }
+  nav button:hover:not(.active) { color: var(--brown-light); }
+
+  /* ── Tab panels ── */
+  .panel { display: none; flex: 1; overflow-y: auto; }
+  .panel.active { display: flex; flex-direction: column; }
+
+  /* ── Chat ── */
+  #chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .msg { display: flex; }
+  .msg.user { justify-content: flex-end; }
+  .bubble { max-width: 72%; padding: 11px 16px; border-radius: var(--radius); font-size: .88rem; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+  .msg.user .bubble { background: var(--brown); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.bot  .bubble { background: var(--cream-dark); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
+  .msg.bot .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--brown); color: #fff; font-size: .7rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-right: 8px; flex-shrink: 0; align-self: flex-end; }
+  .typing-dot { display: inline-flex; gap: 4px; padding: 4px 0; }
+  .typing-dot span { width: 7px; height: 7px; border-radius: 50%; background: var(--brown-light); animation: bounce .9s ease infinite; }
+  .typing-dot span:nth-child(2) { animation-delay: .2s; }
+  .typing-dot span:nth-child(3) { animation-delay: .4s; }
+  @keyframes bounce { 0%,80%,100%{transform:scale(1)} 40%{transform:scale(1.4)} }
+
+  .chat-input-row { padding: 10px 14px; border-top: 1px solid var(--border); background: #fff; display: flex; flex-direction: column; gap: 8px; }
+  .chat-input-main { display: flex; gap: 8px; align-items: flex-end; }
+  .chat-input-row textarea { flex: 1; border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: .88rem; resize: none; height: 44px; font-family: inherit; background: var(--cream); color: var(--text); line-height: 1.4; transition: border-color .15s; }
+  .chat-input-row textarea:focus { outline: none; border-color: var(--brown-light); }
+  .icon-btn { width: 44px; height: 44px; border-radius: 10px; border: 1.5px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: background .15s, border-color .15s; flex-shrink: 0; }
+  .icon-btn:hover { background: var(--cream-dark); border-color: var(--brown-light); }
+  .icon-btn.active { background: var(--brown); border-color: var(--brown); }
+  .icon-btn.listening { background: #dc2626; border-color: #dc2626; animation: mic-pulse 1.4s ease infinite alternate; }
+  @keyframes mic-pulse { from{box-shadow:0 0 0 0 rgba(220,38,38,.5)} to{box-shadow:0 0 0 8px rgba(220,38,38,0)} }
+  .chat-input-row .send-btn { background: var(--brown); color: #fff; border: none; border-radius: 10px; padding: 0 20px; height: 44px; font-size: .88rem; font-weight: 700; cursor: pointer; transition: background .15s; white-space: nowrap; }
+  .chat-input-row .send-btn:hover { background: var(--brown-mid); }
+  .chat-input-row .send-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .img-preview { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--cream-dark); border-radius: 8px; border: 1px solid var(--border); }
+  .img-preview img { height: 48px; width: 48px; object-fit: cover; border-radius: 6px; }
+  .img-preview span { font-size: .78rem; color: var(--muted); flex: 1; }
+  .img-preview button { background: none; border: none; cursor: pointer; color: var(--muted); font-size: .9rem; padding: 2px 6px; border-radius: 4px; }
+  .img-preview button:hover { background: #fee2e2; color: var(--red); }
+  .voice-bar { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+  .voice-bar span { font-size: .75rem; color: var(--muted); }
+
+  /* ── Forms / sections ── */
+  .section { padding: 24px; }
+  .card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); }
+  .card + .card { margin-top: 18px; }
+  .card h2 { font-size: 1rem; font-weight: 800; color: var(--brown); margin-bottom: 4px; }
+  .card p.sub { font-size: .78rem; color: var(--muted); margin-bottom: 16px; }
+
+  label { display: block; font-size: .78rem; font-weight: 700; color: var(--brown); margin-bottom: 5px; margin-top: 12px; }
+  label:first-of-type { margin-top: 0; }
+
+  input[type=text], input[type=email], input[type=number], select, textarea.field {
+    width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 12px;
+    font-size: .86rem; font-family: inherit; background: var(--cream); color: var(--text);
+    transition: border-color .15s;
+  }
+  input:focus, select:focus, textarea.field:focus { outline: none; border-color: var(--brown-light); }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 10px; padding: 11px 22px; font-size: .88rem; font-weight: 700; cursor: pointer; transition: background .15s, opacity .15s; }
+  .btn-primary { background: var(--brown); color: #fff; }
+  .btn-primary:hover { background: var(--brown-mid); }
+  .btn-outline { background: transparent; border: 2px solid var(--brown); color: var(--brown); }
+  .btn-outline:hover { background: var(--cream-dark); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-full { width: 100%; margin-top: 16px; }
+
+  .drop-zone { border: 2px dashed var(--border); border-radius: 10px; padding: 28px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
+  .drop-zone:hover, .drop-zone.drag { border-color: var(--brown-light); background: var(--cream-dark); }
+  .drop-zone .icon { font-size: 2rem; margin-bottom: 6px; }
+  .drop-zone p { font-size: .82rem; color: var(--muted); }
+  .drop-zone .filename { font-size: .88rem; font-weight: 700; color: var(--brown); }
+
+  /* ── Alerts ── */
+  .alert { border-radius: 8px; padding: 10px 14px; font-size: .82rem; margin-top: 14px; }
+  .alert-ok  { background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; }
+  .alert-err { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
+  .alert-info{ background: #fef9c3; border: 1px solid #fde047; color: #713f12; }
+
+  /* ── Topics chips ── */
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+  .chip { background: var(--brown); color: #fff; border-radius: 20px; padding: 4px 12px; font-size: .75rem; font-weight: 600; }
+
+  /* ── Exam ── */
+  .q-card { background: var(--cream-dark); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 14px; }
+  .q-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .q-type { background: var(--brown); color: #fff; border-radius: 6px; padding: 2px 8px; font-size: .7rem; font-weight: 800; }
+  .q-text { font-size: .9rem; font-weight: 600; color: var(--text); line-height: 1.4; }
+  .options { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+  .option-label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: .86rem; color: var(--text); }
+  .option-label input[type=radio] { accent-color: var(--brown); transform: scale(1.15); }
+  .tf-row { display: flex; gap: 20px; margin-top: 10px; }
+  .sa-area { width: 100%; height: 80px; margin-top: 10px; }
+
+  /* ── Result ── */
+  .score-box { text-align: center; border-radius: var(--radius); padding: 28px; margin-bottom: 18px; }
+  .score-box.pass { background: #d1fae5; border: 2px solid #6ee7b7; }
+  .score-box.fail { background: #fee2e2; border: 2px solid #fca5a5; }
+  .score-num { font-size: 3.5rem; font-weight: 900; line-height: 1; }
+  .score-box.pass .score-num { color: var(--green); }
+  .score-box.fail .score-num { color: var(--red); }
+  .score-label { font-size: 1.1rem; font-weight: 800; margin-top: 4px; }
+  .cert-banner { background: #fefce8; border: 2px solid var(--gold); border-radius: var(--radius); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .cert-banner .left p { font-weight: 700; color: var(--gold); }
+  .cert-banner .left small { font-size: .76rem; color: var(--muted); }
+  .btn-gold { background: var(--gold); color: #fff; white-space: nowrap; }
+  .btn-gold:hover { background: var(--gold-light); }
+
+  .graded-q { border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; font-size: .84rem; }
+  .graded-q.correct { background: #d1fae5; border: 1px solid #6ee7b7; }
+  .graded-q.wrong   { background: #fee2e2; border: 1px solid #fca5a5; }
+  .graded-q.sa      { background: #eff6ff; border: 1px solid #bfdbfe; }
+  .graded-q .verdict { font-weight: 800; font-size: .78rem; margin-bottom: 4px; }
+  .graded-q .expl { font-size: .78rem; color: var(--muted); margin-top: 4px; font-style: italic; }
+
+  /* ── Certs ── */
+  .cert-card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .cert-card .info p { font-weight: 700; color: var(--brown); }
+  .cert-card .info small { font-size: .76rem; color: var(--muted); display: block; margin-top: 2px; }
+
+  /* ── Spinner ── */
+  .spinner { width: 18px; height: 18px; border: 3px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+  .spinner.dark { border-color: rgba(92,45,10,.2); border-top-color: var(--brown); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Progress bar ── */
+  .progress { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 18px; }
+  .progress-fill { height: 100%; background: var(--brown); transition: width .3s; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Header -->
+  <header>
+    <div>
+      <h1>☕ Coffee AGI</h1>
+      <p>Maillard Coffee Roasters · Seed to Cup Intelligence</p>
+    </div>
+    <div class="dot" title="API online"></div>
+  </header>
+
+  <!-- Tabs -->
+  <nav>
+    <button class="active" onclick="switchTab('chat')">Chat</button>
+    <button onclick="switchTab('curriculum')">Curriculum</button>
+    <button onclick="switchTab('exam')">Take Exam</button>
+    <button onclick="switchTab('certs')">Certificates</button>
+    <button onclick="switchTab('assets')">Brand Assets</button>
+  </nav>
+
+  <!-- ══════════════ CHAT ══════════════ -->
+  <div id="panel-chat" class="panel active">
+    <div id="chat-messages">
+      <div class="msg bot">
+        <div class="avatar">AGI</div>
+        <div class="bubble">Hello! I'm Coffee AGI — your SCA-level specialty coffee expert. Ask me anything, paste an image, or use the mic to speak.</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <!-- Image preview -->
+      <div id="img-preview" class="img-preview" style="display:none">
+        <img id="img-thumb" src="" alt=""/>
+        <span id="img-name">image</span>
+        <button onclick="clearImage()" title="Remove image">✕</button>
+      </div>
+      <!-- Input row -->
+      <div class="chat-input-main">
+        <!-- Mic button -->
+        <button class="icon-btn" id="mic-btn" onclick="toggleMic()" title="Voice input">🎤</button>
+        <!-- Image attach -->
+        <button class="icon-btn" onclick="document.getElementById('img-file').click()" title="Attach image">📷</button>
+        <input type="file" id="img-file" accept="image/*" style="display:none" onchange="imageFileSelected(this)"/>
+        <!-- Text input -->
+        <textarea id="chat-input" placeholder="Ask anything… or paste an image (Ctrl+V)" rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
+          oninput="this.style.height='44px';this.style.height=Math.min(this.scrollHeight,120)+'px'"
+          onpaste="handlePaste(event)"></textarea>
+        <!-- Voice toggle -->
+        <button class="icon-btn" id="voice-btn" onclick="toggleVoice()" title="Toggle voice response">🔇</button>
+        <!-- Send -->
+        <button class="send-btn" id="chat-btn" onclick="sendChat()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ CURRICULUM ══════════════ -->
+  <div id="panel-curriculum" class="panel">
+    <div class="section">
+      <div class="card">
+        <h2>Upload Curriculum Material</h2>
+        <p class="sub">Supported: PDF, PPTX, TXT, Markdown — goes straight into the knowledge base</p>
+
+        <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="handleDrop(event)">
+          <div class="icon">📄</div>
+          <p id="drop-label">Click or drag a file here</p>
+        </div>
+        <input type="file" id="file-input" accept=".pdf,.pptx,.ppt,.txt,.md" style="display:none" onchange="fileSelected(this)"/>
+
+        <div class="row2">
+          <div>
+            <label>Topic Tag</label>
+            <input type="text" id="ing-topic" value="general" placeholder="e.g. roasting, espresso"/>
+          </div>
+          <div>
+            <label>Difficulty</label>
+            <select id="ing-diff">
+              <option>foundation</option>
+              <option>intermediate</option>
+              <option>advanced</option>
+              <option>expert</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-full" id="ing-btn" onclick="uploadFile()">
+          <span id="ing-btn-inner">Upload to Knowledge Base</span>
+        </button>
+        <div id="ing-alert"></div>
+      </div>
+
+      <div class="card" id="topics-card" style="display:none">
+        <h2>Knowledge Base</h2>
+        <p class="sub" id="topics-total"></p>
+        <div class="chips" id="topics-chips"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ EXAM ══════════════ -->
+  <div id="panel-exam" class="panel">
+    <div class="section" id="exam-setup">
+      <div class="card">
+        <h2>Generate Exam</h2>
+        <p class="sub">AI generates questions from your knowledge base + built-in expertise</p>
+
+        <div class="row2">
+          <div>
+            <label>Your Name</label>
+            <input type="text" id="ex-name" placeholder="Full name"/>
+          </div>
+          <div>
+            <label>Email</label>
+            <input type="email" id="ex-email" placeholder="your@email.com"/>
+          </div>
+        </div>
+
+        <label>Topic</label>
+        <select id="ex-topic">
+          <option>Coffee Origins &amp; Agriculture</option>
+          <option>Post-Harvest Processing</option>
+          <option>Green Coffee Evaluation</option>
+          <option>Roasting Science</option>
+          <option>Sensory Skills &amp; Cupping</option>
+          <option>Brewing &amp; Extraction</option>
+          <option>Espresso Mastery</option>
+          <option>Advanced Barista Skills</option>
+          <option>Coffee Business &amp; Operations</option>
+        </select>
+
+        <div class="row2">
+          <div>
+            <label>Difficulty</label>
+            <select id="ex-diff">
+              <option>foundation</option>
+              <option>intermediate</option>
+              <option>advanced</option>
+              <option>expert</option>
+            </select>
+          </div>
+          <div>
+            <label>Questions</label>
+            <input type="number" id="ex-num" value="8" min="3" max="20"/>
+          </div>
+        </div>
+
+        <div id="exam-alert"></div>
+        <button class="btn btn-primary btn-full" id="gen-btn" onclick="generateExam()">
+          <span id="gen-btn-inner">Generate Exam</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="section" id="exam-questions" style="display:none">
+      <div class="progress"><div class="progress-fill" id="exam-progress"></div></div>
+      <div id="exam-header" style="margin-bottom:18px"></div>
+      <div id="question-list"></div>
+      <div id="exam-submit-row"></div>
+    </div>
+
+    <div class="section" id="exam-result" style="display:none">
+      <div id="result-content"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ CERTIFICATES ══════════════ -->
+  <div id="panel-certs" class="panel">
+    <div class="section">
+      <div class="card">
+        <h2>My Certificates</h2>
+        <p class="sub">Enter your email to retrieve all earned certificates</p>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div style="flex:1">
+            <label>Email</label>
+            <input type="email" id="cert-email" placeholder="your@email.com"
+              onkeydown="if(event.key==='Enter')lookupCerts()"/>
+          </div>
+          <button class="btn btn-primary" style="height:38px;padding:0 20px" onclick="lookupCerts()">Look up</button>
+        </div>
+        <div id="cert-alert"></div>
+      </div>
+      <div id="cert-list" style="margin-top:18px"></div>
+    </div>
+  </div>
+
+
+  <div id="panel-assets" class="panel">
+    <div class="section">
+      <div class="card" style="margin-bottom:18px">
+        <h2>Brand Assets</h2>
+        <p class="sub">Maillard product photos &amp; visuals from Dropbox</p>
+        <div style="display:flex;gap:10px;align-items:center">
+          <input id="assets-path" type="text" value="" placeholder="Dropbox path (leave blank for brand folder)"
+            style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:.85rem"/>
+          <button class="btn btn-primary" style="height:36px;padding:0 18px" onclick="loadAssets()">Browse</button>
+        </div>
+        <div id="assets-folder" style="margin-top:8px;font-size:.78rem;color:var(--muted)"></div>
+      </div>
+      <div id="assets-grid" style="
+        display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+        gap:14px;
+      "></div>
+    </div>
+  </div>
+
+</div><!-- .shell -->
+
+<script>
+const API = 'http://localhost:8000';
+let sessionId = 'sess_' + Date.now();
+let currentFile = null;
+let currentTest = null;
+let examAnswers = {};
+
+// ── Voice / Vision state ───────────────────────────────────────────────────────
+let voiceEnabled = false;
+let recognition = null;
+let isListening = false;
+let pendingImage = null; // { b64, type, name }
+let currentAudio = null;
+
+// ── ElevenLabs speech synthesis ───────────────────────────────────────────────
+async function speak(text) {
+  if (!voiceEnabled || !text.trim()) return;
+  // Stop any currently playing audio
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  try {
+    const res = await fetch(API + '/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (!res.ok) throw new Error('TTS failed: ' + res.status);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    currentAudio = new Audio(url);
+    currentAudio.onended = () => URL.revokeObjectURL(url);
+    currentAudio.play();
+  } catch(e) {
+    console.warn('TTS error:', e.message);
+  }
+}
+
+function toggleVoice() {
+  voiceEnabled = !voiceEnabled;
+  const btn = document.getElementById('voice-btn');
+  btn.textContent = voiceEnabled ? '🔊' : '🔇';
+  btn.classList.toggle('active', voiceEnabled);
+  if (!voiceEnabled && currentAudio) { currentAudio.pause(); currentAudio = null; }
+}
+
+// ── Speech recognition — always-on with VAD ───────────────────────────────────
+let micActive = false;
+let sendTimer = null;
+
+function toggleMic() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('Voice input requires Chrome or Edge.');
+    return;
+  }
+  micActive ? stopMic() : startMic();
+}
+
+function startMic() {
+  micActive = true;
+  const btn = document.getElementById('mic-btn');
+  btn.classList.add('listening');
+  btn.title = 'Mic active — click to disable';
+  runRecognition();
+}
+
+function stopMic() {
+  micActive = false;
+  recognition?.stop();
+  recognition = null;
+  clearTimeout(sendTimer);
+  const btn = document.getElementById('mic-btn');
+  btn.classList.remove('listening');
+  btn.title = 'Voice input';
+  document.getElementById('chat-input').placeholder = 'Ask anything… or paste an image (Ctrl+V)';
+}
+
+function runRecognition() {
+  if (!micActive) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'en-US';
+  recognition.continuous = false;     // one utterance at a time
+  recognition.interimResults = true;  // show words as they're spoken
+
+  recognition.onresult = (e) => {
+    clearTimeout(sendTimer);
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    const input = document.getElementById('chat-input');
+    input.value = final || interim;
+    input.style.height = '44px';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+
+    // Auto-send 900ms after speech goes silent
+    if (final) {
+      sendTimer = setTimeout(() => { if (input.value.trim()) sendChat(); }, 900);
+    }
+  };
+
+  recognition.onerror = (e) => {
+    if (e.error === 'no-speech' || e.error === 'aborted') return; // normal, restart
+    if (e.error === 'not-allowed') { stopMic(); alert('Microphone access denied.'); }
+  };
+
+  recognition.onend = () => {
+    // Restart immediately to stay always-on
+    if (micActive) setTimeout(runRecognition, 150);
+  };
+
+  recognition.start();
+}
+
+// ── Image helpers ──────────────────────────────────────────────────────────────
+function imageFileSelected(input) {
+  if (input.files[0]) loadImageFile(input.files[0]);
+}
+
+function handlePaste(e) {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      loadImageFile(item.getAsFile());
+      return;
+    }
+  }
+}
+
+function loadImageFile(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    const b64 = dataUrl.split(',')[1];
+    pendingImage = { b64, type: file.type || 'image/jpeg', name: file.name || 'image' };
+    document.getElementById('img-thumb').src = dataUrl;
+    document.getElementById('img-name').textContent = file.name || 'image';
+    document.getElementById('img-preview').style.display = 'flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImage() {
+  pendingImage = null;
+  document.getElementById('img-preview').style.display = 'none';
+  document.getElementById('img-file').value = '';
+}
+
+// ── Tab switching ──────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('nav button').forEach((b,i) => {
+    const tabs = ['chat','curriculum','exam','certs','assets'];
+    b.classList.toggle('active', tabs[i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'curriculum') loadTopics();
+  if (name === 'assets') { document.getElementById('assets-path').value = ''; loadAssets(); }
+}
+
+// ── API helper ─────────────────────────────────────────────────────────────────
+async function call(method, path, body, isForm) {
+  const opts = { method };
+  if (body) {
+    if (isForm) { opts.body = body; }
+    else { opts.headers = {'Content-Type':'application/json'}; opts.body = JSON.stringify(body); }
+  }
+  const res = await fetch(API + path, opts);
+  const data = await res.json().catch(() => ({detail: res.statusText}));
+  if (!res.ok) throw new Error(data.detail || 'Request failed');
+  return data;
+}
+
+// ══════════════════════════════ CHAT ═══════════════════════════════════════════
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg && !pendingImage) return;
+  input.value = '';
+  input.style.height = '44px';
+
+  // Show user message with image preview if any
+  if (pendingImage) {
+    appendMsgWithImage('user', msg, pendingImage.b64, pendingImage.type);
+  } else {
+    appendMsg('user', msg);
+  }
+
+  const payload = { message: msg || 'Analyze this image.', session_id: sessionId };
+  if (pendingImage) {
+    payload.image_b64 = pendingImage.b64;
+    payload.image_type = pendingImage.type;
+  }
+  clearImage();
+
+  const typing = appendTyping();
+  document.getElementById('chat-btn').disabled = true;
+  try {
+    const data = await call('POST', '/chat', payload);
+    typing.remove();
+    appendMsg('bot', data.response);
+    speak(data.response);
+  } catch(e) {
+    typing.remove();
+    appendMsg('bot', '⚠️ Error: ' + e.message);
+  } finally {
+    document.getElementById('chat-btn').disabled = false;
+    input.focus();
+  }
+}
+
+function appendMsg(role, text) {
+  const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
+  if (role === 'bot') div.innerHTML = '<div class="avatar">AGI</div>';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+  div.appendChild(bubble);
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return div;
+}
+
+function appendMsgWithImage(role, text, b64, type) {
+  const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.style.cssText = 'display:flex;flex-direction:column;gap:8px;padding:10px;';
+  bubble.innerHTML = `<img src="data:${type};base64,${b64}" style="max-width:220px;max-height:180px;border-radius:8px;object-fit:cover;" alt="attached image"/>`;
+  if (text) {
+    const t = document.createElement('span');
+    t.textContent = text;
+    bubble.appendChild(t);
+  }
+  div.appendChild(bubble);
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return div;
+}
+
+function appendTyping() {
+  const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.innerHTML = '<div class="avatar">AGI</div><div class="bubble"><div class="typing-dot"><span></span><span></span><span></span></div></div>';
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return div;
+}
+
+// ══════════════════════════════ CURRICULUM ════════════════════════════════════
+function fileSelected(input) {
+  if (input.files[0]) setFile(input.files[0]);
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag');
+  if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+}
+function setFile(f) {
+  currentFile = f;
+  document.getElementById('drop-label').innerHTML = `<span class="filename">${f.name}</span>`;
+}
+
+async function uploadFile() {
+  if (!currentFile) { showAlert('ing-alert','Please select a file.','err'); return; }
+  const btn = document.getElementById('ing-btn');
+  const inner = document.getElementById('ing-btn-inner');
+  btn.disabled = true;
+  inner.innerHTML = '<div class="spinner"></div> Ingesting…';
+
+  try {
+    const fd = new FormData();
+    fd.append('file', currentFile);
+    fd.append('topic_tag', document.getElementById('ing-topic').value || 'general');
+    fd.append('difficulty_level', document.getElementById('ing-diff').value);
+    const data = await call('POST', '/knowledge/ingest', fd, true);
+    showAlert('ing-alert', `✓ Ingested ${data.chunks} chunks from "${data.filename}"`, 'ok');
+    currentFile = null;
+    document.getElementById('drop-label').textContent = 'Click or drag a file here';
+    document.getElementById('file-input').value = '';
+    loadTopics();
+  } catch(e) {
+    showAlert('ing-alert', '✗ ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+    inner.textContent = 'Upload to Knowledge Base';
+  }
+}
+
+async function loadTopics() {
+  try {
+    const data = await call('GET', '/knowledge/topics');
+    const card = document.getElementById('topics-card');
+    if (data.total_chunks === 0) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    document.getElementById('topics-total').textContent = `${data.total_chunks} total chunks indexed`;
+    const chips = document.getElementById('topics-chips');
+    chips.innerHTML = Object.entries(data.topics)
+      .map(([t,c]) => `<span class="chip">${t} (${c})</span>`).join('');
+  } catch(_) {}
+}
+
+// ══════════════════════════════ EXAM ══════════════════════════════════════════
+async function generateExam() {
+  const name  = document.getElementById('ex-name').value.trim();
+  const email = document.getElementById('ex-email').value.trim();
+  if (!name || !email) { showAlert('exam-alert','Enter your name and email.','err'); return; }
+
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  document.getElementById('gen-btn-inner').innerHTML = '<div class="spinner"></div> Generating…';
+  showAlert('exam-alert','','info');
+
+  try {
+    const data = await call('POST', '/tests/generate', {
+      topic: document.getElementById('ex-topic').value,
+      difficulty: document.getElementById('ex-diff').value,
+      num_questions: parseInt(document.getElementById('ex-num').value) || 8,
+      student_email: email
+    });
+    currentTest = data;
+    examAnswers = {};
+    renderExam(data);
+  } catch(e) {
+    showAlert('exam-alert','✗ ' + e.message,'err');
+    btn.disabled = false;
+    document.getElementById('gen-btn-inner').textContent = 'Generate Exam';
+  }
+}
+
+function renderExam(test) {
+  document.getElementById('exam-setup').style.display = 'none';
+  document.getElementById('exam-result').style.display = 'none';
+  document.getElementById('exam-questions').style.display = 'block';
+
+  document.getElementById('exam-header').innerHTML = `
+    <div class="card" style="padding:14px 18px">
+      <strong>${test.topic}</strong>
+      <span style="color:var(--muted);font-size:.8rem;margin-left:8px">${test.difficulty} · ${test.questions.length} questions</span>
+    </div>`;
+
+  updateProgress();
+
+  const list = document.getElementById('question-list');
+  list.innerHTML = '';
+  test.questions.forEach(q => {
+    const div = document.createElement('div');
+    div.className = 'q-card';
+    div.id = 'q-' + q.id;
+    let opts = '';
+    if (q.type === 'MC') {
+      opts = `<div class="options">${Object.entries(q.options).map(([k,v]) =>
+        `<label class="option-label"><input type="radio" name="q${q.id}" value="${k}" onchange="setAnswer(${q.id},this.value)"/> <strong>${k}.</strong> ${v}</label>`
+      ).join('')}</div>`;
+    } else if (q.type === 'TF') {
+      opts = `<div class="tf-row">
+        <label class="option-label"><input type="radio" name="q${q.id}" value="True"  onchange="setAnswer(${q.id},this.value)"/> True</label>
+        <label class="option-label"><input type="radio" name="q${q.id}" value="False" onchange="setAnswer(${q.id},this.value)"/> False</label>
+      </div>`;
+    } else {
+      opts = `<textarea class="field sa-area" placeholder="Write your answer here…" oninput="setAnswer(${q.id},this.value)"></textarea>`;
+    }
+    div.innerHTML = `
+      <div class="q-header">
+        <span class="q-type">${q.type}</span>
+        <span style="color:var(--muted);font-size:.8rem">Q${q.id}</span>
+      </div>
+      <p class="q-text">${q.question}</p>${opts}`;
+    list.appendChild(div);
+  });
+
+  document.getElementById('exam-submit-row').innerHTML = `
+    <button class="btn btn-primary btn-full" id="submit-btn" onclick="submitExam()">
+      <span id="submit-inner">Submit Exam</span>
+    </button>`;
+}
+
+function setAnswer(id, val) {
+  examAnswers[id] = val;
+  updateProgress();
+}
+
+function updateProgress() {
+  if (!currentTest) return;
+  const total = currentTest.questions.length;
+  const done  = Object.keys(examAnswers).length;
+  document.getElementById('exam-progress').style.width = (done/total*100) + '%';
+  const btn = document.getElementById('submit-inner');
+  if (btn) btn.textContent = `Submit Exam (${done}/${total} answered)`;
+}
+
+async function submitExam() {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  document.getElementById('submit-inner').innerHTML = '<div class="spinner"></div> Grading…';
+
+  try {
+    const answers = {};
+    Object.entries(examAnswers).forEach(([k,v]) => answers[String(k)] = String(v));
+    const result = await call('POST', '/tests/submit', {
+      test_id: currentTest.test_id,
+      student_email: document.getElementById('ex-email').value.trim(),
+      student_name:  document.getElementById('ex-name').value.trim(),
+      answers
+    });
+    renderResult(result);
+  } catch(e) {
+    btn.disabled = false;
+    document.getElementById('submit-inner').textContent = 'Submit Exam';
+    alert('Error: ' + e.message);
+  }
+}
+
+function renderResult(r) {
+  document.getElementById('exam-questions').style.display = 'none';
+  document.getElementById('exam-result').style.display = 'block';
+
+  const pass = r.passed;
+  let certBanner = '';
+  if (r.certificate && !r.certificate.error) {
+    certBanner = `<div class="cert-banner">
+      <div class="left">
+        <p>🏆 Certificate Earned</p>
+        <small>${r.certificate_track}</small>
+      </div>
+      <a class="btn btn-gold" href="${API}/certificates/${r.certificate.id}/download" target="_blank">Download PDF</a>
+    </div>`;
+  }
+
+  const graded = r.graded_questions.map(g => {
+    if (g.type === 'SA') {
+      return `<div class="graded-q sa">
+        <div class="verdict" style="color:#1d4ed8">SA — ${g.score}/10</div>
+        <p>Q${g.id}: ${g.question}</p>
+        ${g.feedback ? `<p class="expl">${g.feedback}</p>` : ''}
+      </div>`;
+    }
+    const ok = g.correct;
+    return `<div class="graded-q ${ok?'correct':'wrong'}">
+      <div class="verdict" style="color:${ok?'#166534':'#991b1b'}">${ok ? '✓ Correct' : '✗ Wrong'}${!ok ? ` — correct: ${g.correct_answer}`:''}</div>
+      <p>Q${g.id}: ${g.question}</p>
+      ${g.explanation ? `<p class="expl">${g.explanation}</p>` : ''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('result-content').innerHTML = `
+    <div class="score-box ${pass?'pass':'fail'}">
+      <div class="score-num">${r.score}%</div>
+      <div class="score-label">${pass ? 'PASSED' : 'NOT PASSED'} — passing score: ${r.passing_score}%</div>
+      <p style="font-size:.82rem;margin-top:4px;opacity:.7">${r.topic} · ${r.difficulty}</p>
+    </div>
+    ${certBanner}
+    <h3 style="font-size:.95rem;color:var(--brown);margin-bottom:12px">Question Review</h3>
+    ${graded}
+    <button class="btn btn-outline btn-full" onclick="resetExam()" style="margin-top:8px">Take Another Exam</button>`;
+}
+
+function resetExam() {
+  document.getElementById('exam-result').style.display = 'none';
+  document.getElementById('exam-setup').style.display = 'block';
+  document.getElementById('gen-btn').disabled = false;
+  document.getElementById('gen-btn-inner').textContent = 'Generate Exam';
+  document.getElementById('exam-alert').innerHTML = '';
+  currentTest = null;
+  examAnswers = {};
+}
+
+// ══════════════════════════════ CERTIFICATES ══════════════════════════════════
+async function lookupCerts() {
+  const email = document.getElementById('cert-email').value.trim();
+  if (!email) return;
+  try {
+    const data = await call('GET', `/certificates/student/${encodeURIComponent(email)}`);
+    const list = document.getElementById('cert-list');
+    if (!data.certificates.length) {
+      list.innerHTML = '<p style="text-align:center;color:var(--muted);padding:32px 0">No certificates found for this email.</p>';
+      return;
+    }
+    list.innerHTML = data.certificates.map(c => `
+      <div class="cert-card">
+        <div class="info">
+          <p>${c.certificate_track}</p>
+          <small>${c.topic} · Score: ${c.score}%</small>
+          <small>Issued: ${c.issued_date}</small>
+        </div>
+        <a class="btn btn-gold" href="${API}/certificates/${c.id}/download" target="_blank">PDF</a>
+      </div>`).join('');
+  } catch(e) {
+    showAlert('cert-alert','✗ ' + e.message,'err');
+  }
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  if (!msg) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+}
+
+// ── Brand Assets ──────────────────────────────────────────────────────────────
+async function loadAssets() {
+  const path = document.getElementById('assets-path').value.trim();
+  const grid = document.getElementById('assets-grid');
+  const folderLabel = document.getElementById('assets-folder');
+  grid.innerHTML = '<p style="color:var(--muted);padding:20px">Loading…</p>';
+
+  const url = API + '/dropbox/list' + (path ? '?path=' + encodeURIComponent(path) : '');
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error((await res.json()).detail || res.status);
+    const data = await res.json();
+    folderLabel.textContent = '📁 ' + data.folder + '  (' + data.count + ' items)';
+    grid.innerHTML = '';
+
+    if (!data.entries.length) {
+      grid.innerHTML = '<p style="color:var(--muted)">No files found.</p>';
+      return;
+    }
+
+    for (const entry of data.entries) {
+      const card = document.createElement('div');
+      card.style.cssText = 'background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:box-shadow .15s';
+      card.onmouseenter = () => card.style.boxShadow = '0 4px 14px rgba(0,0,0,.1)';
+      card.onmouseleave = () => card.style.boxShadow = '';
+
+      if (entry.is_dir) {
+        card.innerHTML = `
+          <div style="height:120px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;background:#f8f4f0">📁</div>
+          <div style="padding:8px 10px">
+            <div style="font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${entry.name}">${entry.name}</div>
+            <div style="font-size:.72rem;color:var(--muted)">folder</div>
+          </div>`;
+        card.onclick = () => {
+          document.getElementById('assets-path').value = entry.path;
+          loadAssets();
+        };
+      } else {
+        const ext = entry.name.split('.').pop().toLowerCase();
+        const isImg = ['jpg','jpeg','png','gif','webp','heic'].includes(ext);
+        const previewUrl = API + '/dropbox/preview?path=' + encodeURIComponent(entry.path);
+        const imgHtml = isImg
+          ? `<img src="${previewUrl}" loading="lazy" style="width:100%;height:140px;object-fit:cover;display:block" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`
+          : '';
+        const fallbackStyle = isImg ? 'display:none' : 'display:flex';
+        const icon = ext === 'pdf' ? '📄' : ext === 'zip' ? '🗜️' : '📎';
+        card.innerHTML = `
+          ${imgHtml}
+          <div style="height:140px;${fallbackStyle};align-items:center;justify-content:center;font-size:2.5rem;background:#f8f4f0">${icon}</div>
+          <div style="padding:8px 10px">
+            <div style="font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${entry.name}">${entry.name}</div>
+            <div style="font-size:.7rem;color:var(--muted)">${entry.size ? (entry.size/1024).toFixed(0) + ' KB' : ''}</div>
+          </div>`;
+        card.onclick = () => window.open(previewUrl, '_blank');
+      }
+      grid.appendChild(card);
+    }
+  } catch(e) {
+    grid.innerHTML = '<p style="color:#e53e3e">Error: ' + e.message + '</p>';
+  }
+}
+
+</script>
+</body>
+</html>

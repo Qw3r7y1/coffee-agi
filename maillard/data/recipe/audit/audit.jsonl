@@ -1,0 +1,5 @@
+{"ts": "2026-03-11T03:09:40.730118+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "list_sources", "args": {"query": "list sources"}}}
+{"ts": "2026-03-11T03:09:48.417589+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "how do you make a freddo cappuccino at maillard"}}}
+{"ts": "2026-03-11T03:09:59.594811+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "how do you make a freddo cappuccino at maillard"}}}
+{"ts": "2026-03-11T20:02:14.178234+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "Create a social media campaign for our new cold brew"}}}
+{"ts": "2026-03-11T20:07:19.706546+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "freddo cappuccino"}}}

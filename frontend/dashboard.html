@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maillard AI Control Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f0f;
+      --card: #1a1a1a;
+      --border: #2a2a2a;
+      --border-hover: #3a3a3a;
+      --gold: #b8860b;
+      --gold-light: #d4a017;
+      --gold-dim: rgba(184, 134, 11, 0.12);
+      --white: #ffffff;
+      --muted: #888888;
+      --muted-dark: #555555;
+      --active-green: #22c55e;
+      --inactive: #3a3a3a;
+      --font: 'Inter', -apple-system, sans-serif;
+      --font-tight: 'Inter Tight', 'Inter', sans-serif;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--font);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* ── Layout ── */
+    .shell {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 60px;
+      border-bottom: 1px solid var(--border);
+      background: #080808;
+    }
+    .header-left {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+    }
+    .wordmark {
+      font-family: var(--font-tight);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+    .wordmark span {
+      color: var(--gold);
+    }
+    .system-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .header-stat {
+      text-align: right;
+    }
+    .header-stat-value {
+      font-family: var(--font-tight);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .header-stat-label {
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── Status bar (top) ── */
+    .status-strip {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 0 32px;
+      height: 36px;
+      border-bottom: 1px solid var(--border);
+      background: #0c0c0c;
+      overflow-x: auto;
+    }
+    .status-strip-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted-dark);
+      flex-shrink: 0;
+    }
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--inactive);
+    }
+    .status-dot.active { background: var(--active-green); }
+    .status-dot.soon { background: var(--gold); }
+    .status-badge-name {
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .status-badge-name.active { color: var(--white); }
+
+    /* ── Main content ── */
+    .content {
+      padding: 32px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── Department Grid ── */
+    .dept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+
+    .dept-card {
+      background: var(--card);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      transition: background 0.15s;
+      cursor: default;
+    }
+    .dept-card:hover { background: #1f1f1f; }
+    .dept-card.active-dept { cursor: pointer; }
+    .dept-card.active-dept:hover { background: #202016; }
+
+    .dept-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    .dept-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--inactive);
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+    .dept-dot.online { background: var(--active-green); }
+
+    .dept-name {
+      font-family: var(--font-tight);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: 0.01em;
+    }
+    .dept-desc {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .dept-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+    }
+    .dept-tag {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted-dark);
+    }
+    .dept-tag.active-tag { color: var(--active-green); }
+    .dept-tag.soon-tag { color: var(--gold); }
+
+    .btn-open {
+      font-family: var(--font-tight);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border: 1px solid var(--border-hover);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      font-family: var(--font);
+    }
+    .btn-open:hover {
+      border-color: var(--muted);
+      color: var(--white);
+    }
+    .dept-card.active-dept .btn-open {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .dept-card.active-dept .btn-open:hover {
+      background: var(--gold);
+      color: #000;
+    }
+
+    /* ── Quick Dispatch ── */
+    .dispatch-section {
+      border: 1px solid var(--border);
+      background: var(--card);
+      padding: 20px 24px;
+      margin-bottom: 32px;
+    }
+    .dispatch-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .dispatch-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .dispatch-subtitle {
+      font-size: 10px;
+      color: var(--muted-dark);
+    }
+    .dispatch-row {
+      display: flex;
+      gap: 10px;
+    }
+    .dispatch-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--white);
+      font-family: var(--font);
+      font-size: 13px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .dispatch-input:focus { border-color: var(--gold); }
+    .dispatch-input::placeholder { color: var(--muted-dark); }
+    .btn-dispatch {
+      font-family: var(--font-tight);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0 20px;
+      background: var(--gold);
+      color: #000;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .btn-dispatch:hover { background: var(--gold-light); }
+    .btn-dispatch:disabled { background: var(--muted-dark); color: var(--muted); cursor: not-allowed; }
+
+    .dispatch-result {
+      margin-top: 12px;
+      min-height: 24px;
+    }
+    .dispatch-routing {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+    }
+    .dispatch-routing.visible { display: flex; }
+    .routing-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    .routing-dept {
+      font-weight: 600;
+      color: var(--white);
+    }
+    .routing-status {
+      color: var(--muted);
+    }
+    .routing-result-text {
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--muted);
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 8px;
+      padding: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    /* ── Bottom status bar ── */
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 28px;
+      border-top: 1px solid var(--border);
+      background: #080808;
+    }
+    .footer-left, .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .footer-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: var(--muted-dark);
+    }
+    .footer-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--active-green);
+    }
+    .footer-dot.warn { background: var(--gold); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border-hover);
+      padding: 32px;
+      max-width: 420px;
+      width: 90%;
+    }
+    .modal-title {
+      font-family: var(--font-tight);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+    .modal-dept-name {
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      margin-bottom: 20px;
+    }
+    .modal-body {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+    .modal-body strong { color: var(--white); }
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-modal-close {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      border: 1px solid var(--border-hover);
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-modal-close:hover { border-color: var(--white); color: var(--white); }
+
+    /* typing dots for dispatch */
+    .dispatch-dots {
+      display: inline-flex;
+      gap: 3px;
+      margin-left: 4px;
+    }
+    .dispatch-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: dpulse 1.2s infinite;
+    }
+    .dispatch-dot:nth-child(2) { animation-delay: 0.2s; }
+    .dispatch-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dpulse {
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Header -->
+  <header>
+    <div class="header-left">
+      <div class="wordmark">MAIL<span>LARD</span></div>
+      <div class="system-label">AI Control Panel &nbsp;&middot;&nbsp; Multi-Department Intelligence System</div>
+    </div>
+    <div class="header-right">
+      <div class="header-stat">
+        <div class="header-stat-value" id="activeDeptCount">—</div>
+        <div class="header-stat-label">Active Departments</div>
+      </div>
+      <div class="header-stat">
+        <div class="header-stat-value" id="totalDeptCount">10</div>
+        <div class="header-stat-label">Total Departments</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Status Strip -->
+  <div class="status-strip">
+    <div class="status-strip-label">Departments</div>
+    <div class="status-badge">
+      <div class="status-dot active" id="strip-design"></div>
+      <span class="status-badge-name active">Design</span>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot" id="strip-accounting"></div>
+      <span class="status-badge-name" id="strip-accounting-name">Accounting</span>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot" id="strip-legal"></div>
+      <span class="status-badge-name" id="strip-legal-name">Legal</span>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot" id="strip-analyst"></div>
+      <span class="status-badge-name" id="strip-analyst-name">Analyst</span>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot" id="strip-operations"></div>
+      <span class="status-badge-name" id="strip-operations-name">Operations</span>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot" id="strip-procurement"></div>
+      <span class="status-badge-name" id="strip-procurement-name">Procurement</span>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot" id="strip-hr"></div>
+      <span class="status-badge-name" id="strip-hr-name">HR</span>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot" id="strip-marketing"></div>
+      <span class="status-badge-name" id="strip-marketing-name">Marketing</span>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot" id="strip-sales"></div>
+      <span class="status-badge-name" id="strip-sales-name">Sales</span>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot" id="strip-executive"></div>
+      <span class="status-badge-name" id="strip-executive-name">Executive</span>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Quick Dispatch -->
+    <div class="dispatch-section">
+      <div class="dispatch-header">
+        <div>
+          <div class="dispatch-title">Quick Dispatch</div>
+          <div class="dispatch-subtitle">Enter any task — the system will route it to the correct department automatically</div>
+        </div>
+      </div>
+      <div class="dispatch-row">
+        <input
+          type="text"
+          class="dispatch-input"
+          id="dispatchInput"
+          placeholder="e.g. Design a label for Ethiopia Yirgacheffe, or Audit Q3 financials..."
+          onkeydown="dispatchKey(event)"
+        />
+        <button class="btn-dispatch" id="dispatchBtn" onclick="quickDispatch()">Route + Execute</button>
+      </div>
+      <div class="dispatch-result" id="dispatchResult"></div>
+    </div>
+
+    <!-- Department Grid -->
+    <div class="section-header">
+      <div class="section-title">Department Roster</div>
+    </div>
+
+    <div class="dept-grid" id="deptGrid">
+
+      <!-- Design Department — ACTIVE -->
+      <div class="dept-card active-dept" onclick="openDesign()">
+        <div class="dept-card-top">
+          <div>
+            <div class="dept-name">Design Department</div>
+          </div>
+          <div class="dept-dot online" id="dot-design"></div>
+        </div>
+        <div class="dept-desc">Brand governance, packaging systems, visual identity, creative direction, and production standards for all Maillard touchpoints.</div>
+        <div class="dept-card-footer">
+          <span class="dept-tag active-tag" id="tag-design">Online</span>
+          <button class="btn-open" onclick="event.stopPropagation(); openDesign()">Open</button>
+        </div>
+      </div>
+
+      <!-- Accounting Department -->
+      <div class="dept-card" id="card-accounting" onclick="showComingSoon('Accounting Department', 'Financial reporting, accounts payable and receivable, cost analysis, payroll, and regulatory compliance.')">
+        <div class="dept-card-top">
+          <div>
+            <div class="dept-name">Accounting Department</div>
+          </div>
+          <div class="dept-dot" id="dot-accounting"></div>
+        </div>
+        <div class="dept-desc">Financial reporting, accounts payable and receivable, cost analysis, payroll, and regulatory compliance.</div>
+        <div class="dept-card-footer">
+          <span class="dept-tag soon-tag" id="tag-accounting">Coming Soon</span>
+          <button class="btn-open" onclick="event.stopPropagation(); showComingSoon('Accounting Department', 'Financial reporting, accounts payable and receivable, cost analysis, payroll, and regulatory compliance.')">Open</button>
+        </div>
+      </div>
+
+      <!-- Legal Department -->
+      <div class="dept-card" id="card-legal" onclick="showComingSoon('Legal Department', 'Contract review, regulatory compliance, intellectual property, vendor agreements, and risk management.')">
+        <div class="dept-card-top">
+          <div>
+            <div class="dept-name">Legal Department</div>
+          </div>
+          <div class="dept-dot" id="dot-legal"></div>
+        </div>
+        <div class="dept-desc">Contract review, regulatory compliance, intellectual property, vendor agreements, and risk management.</div>
+        <div class="dept-card-footer">
+          <span class="dept-tag soon-tag" id="tag-legal">Coming Soon</span>
+          <button class="btn-open" onclick="event.stopPropagation(); showComingSoon('Legal Department', 'Contract review, regulatory compliance, intellectual property, vendor agreements, and risk management.')">Open</button>
+        </div>
+      </div>
+
+      <!-- Analyst Department -->
+      <div class="dept-card" id="card-analyst" onclick="showComingSoon('Analyst Department', 'Market intelligence, sales analytics, trend analysis, competitive research, and performance reporting.')">
+        <div class="dept-card-top">
+          <div>
+            <div class="dept-name">Analyst Department</div>
+          </div>
+          <div class="dept-dot" id="dot-analyst"></div>
+        </div>
+        <div class="dept-desc">Market intelligence, sales analytics, trend analysis, competitive research, and performance reporting.</div>
+        <div class="dept-card-footer">
+          <span class="dept-tag soon-tag" id="tag-analyst">Coming Soon</span>
+          <button class="btn-open" onclick="event.stopPropagation(); showComingSoon('Analyst Department', 'Market intelligence, sales analytics, trend analysis, competitive research, and performance reporting.')">Open</button>
+        </div>
+      </div>
+
+      <!-- Operations Department -->
+      <div class="dept-card" id="card-operations" onclick="showComingSoon('Operations Department', 'Roastery workflow, production scheduling, quality control, equipment maintenance, and logistics coordination.')">
+        <div class="dept-card-top">
+          <div>
+            <div class="dept-name">Operations Department</div>
+          </div>
+          <div class="dept-dot" id="dot-operations"></div>
+        </div>
+        <div class="dept-desc">Roastery workflow, production scheduling, quality control, equipment maintenance, and logistics coordination.</div>
+        <div class="dept-card-footer">
+          <span class="dept-tag soon-tag" id="tag-operations">Coming Soon</span>
+          <button class="btn-open" onclick="event.stopPropagation(); showComingSoon('Operations Department', 'Roastery workflow, production scheduling, quality control, equipment maintenance, and logistics coordination.')">Open</button>
+        </div>
+      </div>
+
+      <!-- Procurement Department -->
+      <div class="dept-card" id="card-procurement" onclick="showComingSoon('Procurement Department', 'Green coffee sourcing, vendor management, supply chain oversight, purchasing negotiation, and import compliance.')">
+        <div class="dept-card-top">
+          <div>
+            <div class="dept-name">Procurement Department</div>
+          </div>
+          <div class="dept-dot" id="dot-procurement"></div>
+        </div>
+        <div class="dept-desc">Green coffee sourcing, vendor management, supply chain oversight, purchasing negotiation, and import compliance.</div>
+        <div class="dept-card-footer">
+          <span class="dept-tag soon-tag" id="tag-procurement">Coming Soon</span>
+          <button class="btn-open" onclick="event.stopPropagation(); showComingSoon('Procurement Department', 'Green coffee sourcing, vendor management, supply chain oversight, purchasing negotiation, and import compliance.')">Open</button>
+        </div>
+      </div>
+
+      <!-- HR Department -->
+      <div class="dept-card" id="card-hr" onclick="showComingSoon('HR Department', 'Talent acquisition, employee relations, training programs, compensation management, and organizational development.')">
+        <div class="dept-card-top">
+          <div>
+            <div class="dept-name">HR Department</div>
+          </div>
+          <div class="dept-dot" id="dot-hr"></div>
+        </div>
+        <div class="dept-desc">Talent acquisition, employee relations, training programs, compensation management, and organizational development.</div>
+        <div class="dept-card-footer">
+          <span class="dept-tag soon-tag" id="tag-hr">Coming Soon</span>
+          <button class="btn-open" onclick="event.stopPropagation(); showComingSoon('HR Department', 'Talent acquisition, employee relations, training programs, compensation management, and organizational development.')">Open</button>
+        </div>
+      </div>
+
+      <!-- Marketing Department -->
+      <div class="dept-card" id="card-marketing" onclick="showComingSoon('Marketing Department', 'Campaign strategy, content production, digital marketing, community management, and brand activation.')">
+        <div class="dept-card-top">
+          <div>
+            <div class="dept-name">Marketing Department</div>
+          </div>
+          <div class="dept-dot" id="dot-marketing"></div>
+        </div>
+        <div class="dept-desc">Campaign strategy, content production, digital marketing, community management, and brand activation.</div>
+        <div class="dept-card-footer">
+          <span class="dept-tag soon-tag" id="tag-marketing">Coming Soon</span>
+          <button class="btn-open" onclick="event.stopPropagation(); showComingSoon('Marketing Department', 'Campaign strategy, content production, digital marketing, community management, and brand activation.')">Open</button>
+        </div>
+      </div>
+
+      <!-- Sales Department -->
+      <div class="dept-card" id="card-sales" onclick="showComingSoon('Sales Department', 'Wholesale account management, B2B pipeline, retail partnerships, pricing strategy, and sales reporting.')">
+        <div class="dept-card-top">
+          <div>
+            <div class="dept-name">Sales Department</div>
+          </div>
+          <div class="dept-dot" id="dot-sales"></div>
+        </div>
+        <div class="dept-desc">Wholesale account management, B2B pipeline, retail partnerships, pricing strategy, and sales reporting.</div>
+        <div class="dept-card-footer">
+          <span class="dept-tag soon-tag" id="tag-sales">Coming Soon</span>
+          <button class="btn-open" onclick="event.stopPropagation(); showComingSoon('Sales Department', 'Wholesale account management, B2B pipeline, retail partnerships, pricing strategy, and sales reporting.')">Open</button>
+        </div>
+      </div>
+
+      <!-- Executive Department -->
+      <div class="dept-card" id="card-executive" onclick="showComingSoon('Executive Department', 'Strategic planning, organizational oversight, board reporting, brand system approvals, and cross-departmental coordination.')">
+        <div class="dept-card-top">
+          <div>
+            <div class="dept-name">Executive Department</div>
+          </div>
+          <div class="dept-dot" id="dot-executive"></div>
+        </div>
+        <div class="dept-desc">Strategic planning, organizational oversight, board reporting, brand system approvals, and cross-departmental coordination.</div>
+        <div class="dept-card-footer">
+          <span class="dept-tag soon-tag" id="tag-executive">Coming Soon</span>
+          <button class="btn-open" onclick="event.stopPropagation(); showComingSoon('Executive Department', 'Strategic planning, organizational oversight, board reporting, brand system approvals, and cross-departmental coordination.')">Open</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-left">
+      <div class="footer-item">
+        <div class="footer-dot" id="apiDot"></div>
+        <span id="apiStatus">API Connecting...</span>
+      </div>
+      <div class="footer-item">
+        <span>MCP Orchestrator</span>
+      </div>
+      <div class="footer-item">
+        <span>Maillard Coffee Roasters</span>
+      </div>
+    </div>
+    <div class="footer-right">
+      <div class="footer-item">
+        <span id="footerDate"></span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- Coming Soon Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-title">Department Offline</div>
+    <div class="modal-dept-name" id="modalDeptName"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-modal-close" onclick="closeModalDirect()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE = 'http://localhost:8000';
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  async function init() {
+    // Set date
+    document.getElementById('footerDate').textContent = new Date().toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    // Fetch departments
+    try {
+      const r = await fetch(`${API_BASE}/mcp/departments`);
+      if (r.ok) {
+        const data = await r.json();
+        updateDeptStatus(data);
+        document.getElementById('apiDot').className = 'footer-dot';
+        document.getElementById('apiStatus').textContent = 'API Connected';
+      } else {
+        throw new Error('Not OK');
+      }
+    } catch {
+      document.getElementById('apiDot').className = 'footer-dot warn';
+      document.getElementById('apiStatus').textContent = 'API Offline';
+      // Still mark Design as active (it's our primary live department)
+      markDeptActive('design');
+      document.getElementById('activeDeptCount').textContent = '1';
+    }
+  }
+
+  function updateDeptStatus(data) {
+    // data.departments is expected to be a list of department name strings or objects
+    const depts = data.departments || [];
+    let activeCount = 0;
+
+    // Always mark design as active if API is up
+    const knownMap = {
+      'designer': 'design',
+      'design': 'design',
+      'accounting': 'accounting',
+      'legal': 'legal',
+      'analyst': 'analyst',
+      'operations': 'operations',
+      'procurement': 'procurement',
+      'hr': 'hr',
+      'marketing': 'marketing',
+      'sales': 'sales',
+      'executive': 'executive',
+    };
+
+    // Mark all returned depts as active
+    const activeDepts = new Set();
+    for (const d of depts) {
+      const key = typeof d === 'string' ? d.toLowerCase() : (d.name || d.id || '').toLowerCase();
+      const mapped = knownMap[key];
+      if (mapped) activeDepts.add(mapped);
+    }
+
+    // Design is always active if API responds
+    activeDepts.add('design');
+
+    for (const key of activeDepts) {
+      markDeptActive(key);
+      activeCount++;
+    }
+
+    document.getElementById('activeDeptCount').textContent = activeCount;
+  }
+
+  function markDeptActive(key) {
+    const dot = document.getElementById(`dot-${key}`);
+    const tag = document.getElementById(`tag-${key}`);
+    const stripDot = document.getElementById(`strip-${key}`);
+    const stripName = document.getElementById(`strip-${key}-name`);
+
+    if (dot) dot.classList.add('online');
+    if (tag) { tag.className = 'dept-tag active-tag'; tag.textContent = 'Online'; }
+    if (stripDot) stripDot.classList.add('active');
+    if (stripName) stripName.classList.add('active');
+
+    if (key !== 'design') {
+      const card = document.getElementById(`card-${key}`);
+      if (card) card.classList.add('active-dept');
+    }
+  }
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+  function openDesign() {
+    window.location.href = '/designer';
+  }
+
+  // ── Modal ─────────────────────────────────────────────────────────────────
+  function showComingSoon(name, desc) {
+    document.getElementById('modalDeptName').textContent = name;
+    document.getElementById('modalBody').innerHTML = `
+      <strong>${name}</strong> is not yet deployed in the Maillard AI system.<br><br>
+      ${desc}<br><br>
+      This department is being developed as part of the Maillard Multi-Department Intelligence System. Once deployed, it will be accessible from this control panel with full MCP integration.
+    `;
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function closeModal(e) {
+    if (e.target === document.getElementById('modalOverlay')) {
+      closeModalDirect();
+    }
+  }
+  function closeModalDirect() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+
+  // ── Quick Dispatch ────────────────────────────────────────────────────────
+  function dispatchKey(e) {
+    if (e.key === 'Enter') quickDispatch();
+  }
+
+  async function quickDispatch() {
+    const input = document.getElementById('dispatchInput');
+    const task = input.value.trim();
+    if (!task) return;
+
+    const btn = document.getElementById('dispatchBtn');
+    btn.disabled = true;
+
+    const resultEl = document.getElementById('dispatchResult');
+    resultEl.innerHTML = `
+      <div class="dispatch-routing visible">
+        <span class="routing-label">Routing</span>
+        <span class="routing-status">Analyzing task...</span>
+        <div class="dispatch-dots">
+          <div class="dispatch-dot"></div>
+          <div class="dispatch-dot"></div>
+          <div class="dispatch-dot"></div>
+        </div>
+      </div>
+    `;
+
+    try {
+      // Step 1: Route
+      const routeRes = await fetch(`${API_BASE}/mcp/route?task=${encodeURIComponent(task)}`);
+      let routed = 'designer';
+      if (routeRes.ok) {
+        const routeData = await routeRes.json();
+        routed = routeData.routed_to || 'designer';
+      }
+
+      resultEl.innerHTML = `
+        <div class="dispatch-routing visible">
+          <span class="routing-label">Routed to</span>
+          <span class="routing-dept">${escHtml(capitalize(routed))}</span>
+          <span class="routing-status">Executing...</span>
+          <div class="dispatch-dots">
+            <div class="dispatch-dot"></div>
+            <div class="dispatch-dot"></div>
+            <div class="dispatch-dot"></div>
+          </div>
+        </div>
+      `;
+
+      // Step 2: Dispatch
+      const dispatchRes = await fetch(`${API_BASE}/mcp/dispatch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task: task, department: routed })
+      });
+
+      if (!dispatchRes.ok) throw new Error(`Dispatch failed: ${dispatchRes.status}`);
+      const dispatchData = await dispatchRes.json();
+
+      const raw = getResultText(dispatchData);
+      resultEl.innerHTML = `
+        <div class="dispatch-routing visible" style="margin-bottom:8px;">
+          <span class="routing-label">Routed to</span>
+          <span class="routing-dept">${escHtml(capitalize(routed))}</span>
+          <span class="routing-status">Complete</span>
+        </div>
+        <div class="routing-result-text">${escHtml(raw)}</div>
+      `;
+
+    } catch (err) {
+      resultEl.innerHTML = `
+        <div class="dispatch-routing visible">
+          <span class="routing-label" style="color:#ef4444;">Error</span>
+          <span class="routing-status">${escHtml(err.message)}</span>
+        </div>
+      `;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function getResultText(data) {
+    if (!data) return 'No response';
+    if (typeof data === 'string') return data;
+    if (data.data) {
+      if (typeof data.data === 'string') return data.data;
+      if (data.data.result) return String(data.data.result);
+      if (data.data.message) return String(data.data.message);
+      return JSON.stringify(data.data, null, 2);
+    }
+    if (data.result) return String(data.result);
+    if (data.message) return String(data.message);
+    return JSON.stringify(data, null, 2);
+  }
+
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function escHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(String(str)));
+    return d.innerHTML;
+  }
+
+  // ── Run ───────────────────────────────────────────────────────────────────
+  init();
+</script>
+</body>
+</html>

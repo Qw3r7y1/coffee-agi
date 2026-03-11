@@ -20,9 +20,10 @@ from certs.certificate_generator import CertificateGenerator
 from core.coffee_agent import CoffeeAgent
 from ingestion.knowledge_base import KnowledgeBase
 from tests_engine.test_generator import TestGenerator
+from maillard.api import router as mcp_router
 
 # ── Ensure brand folder structure exists ──────────────────────────────────────
-for _d in ["data/maillard/logos", "data/maillard/images", "data/maillard/fonts", "data/maillard/guidelines"]:
+for _d in ["data/maillard/logos", "data/maillard/images", "data/maillard/fonts", "data/maillard/guidelines", "data/maillard/generated"]:
     os.makedirs(_d, exist_ok=True)
 
 # ── Services ──────────────────────────────────────────────────────────────────
@@ -56,6 +57,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(mcp_router, prefix="/mcp")
 
 
 
@@ -125,6 +128,27 @@ class SubmitRequest(BaseModel):
 def ui():
     """Serve the Coffee AGI web interface."""
     with open("frontend/index.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+
+@app.get("/designer", tags=["UI"], response_class=HTMLResponse)
+def designer_ui():
+    """Serve the Maillard Design Department interface."""
+    with open("frontend/designer.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+
+@app.get("/dashboard", tags=["UI"], response_class=HTMLResponse)
+def dashboard_ui():
+    """Serve the Maillard AI Control Panel dashboard."""
+    with open("frontend/dashboard.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+
+@app.get("/agent", tags=["UI"], response_class=HTMLResponse)
+def agent_ui():
+    """Serve the Maillard Agent chat interface."""
+    with open("frontend/agent.html", "r", encoding="utf-8") as f:
         return f.read()
 
 

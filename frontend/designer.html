@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maillard Design Department</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #111111;
+      --white: #ffffff;
+      --gold: #b8860b;
+      --gold-light: #d4a017;
+      --gold-dim: rgba(184, 134, 11, 0.15);
+      --gray-light: #f5f5f5;
+      --gray-mid: #e0e0e0;
+      --gray-dark: #888888;
+      --gray-darker: #555555;
+      --bg-sidebar: #f8f8f8;
+      --border: #e4e4e4;
+      --font-main: 'Inter', -apple-system, sans-serif;
+      --font-tight: 'Inter Tight', 'Inter', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font-main);
+      background: var(--white);
+      color: var(--black);
+      font-size: 13px;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+
+    /* ── Layout Shell ── */
+    .app {
+      display: grid;
+      grid-template-rows: 52px 1fr 28px;
+      grid-template-columns: 280px 1fr 0px;
+      height: 100vh;
+      transition: grid-template-columns 0.25s ease;
+    }
+    .app.panel-open {
+      grid-template-columns: 280px 1fr 320px;
+    }
+
+    /* ── Header ── */
+    header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--black);
+      color: var(--white);
+    }
+    .header-brand {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+    .header-brand h1 {
+      font-family: var(--font-tight);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+    .header-brand .subtitle {
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      font-weight: 400;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-panel-toggle {
+      background: transparent;
+      border: 1px solid #333;
+      color: #aaa;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-family: var(--font-main);
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-panel-toggle:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .btn-panel-toggle.active {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    /* ── Sidebar ── */
+    aside {
+      border-right: 1px solid var(--border);
+      background: var(--bg-sidebar);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .sidebar-section {
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gray-dark);
+      margin-bottom: 8px;
+    }
+
+    /* Department info */
+    .dept-name {
+      font-family: var(--font-tight);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--black);
+      margin-bottom: 3px;
+    }
+    .dept-desc {
+      font-size: 11px;
+      color: var(--gray-darker);
+      line-height: 1.5;
+    }
+
+    /* Tool list */
+    .tool-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+      border-bottom: 1px solid transparent;
+    }
+    .tool-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      flex-shrink: 0;
+    }
+    .tool-dot.inactive { background: var(--gray-mid); }
+    .tool-name {
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      color: var(--black);
+    }
+    .tool-status {
+      margin-left: auto;
+      font-size: 9px;
+      color: var(--gray-dark);
+      letter-spacing: 0.04em;
+    }
+
+    /* Brand system status */
+    .brand-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+    }
+    .brand-status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+    .brand-status-text {
+      font-size: 11px;
+      color: var(--black);
+    }
+    .brand-file-list {
+      list-style: none;
+      margin-top: 8px;
+    }
+    .brand-file-list li {
+      font-size: 10px;
+      font-family: 'Courier New', monospace;
+      color: var(--gray-darker);
+      padding: 2px 0;
+      border-left: 2px solid var(--gray-mid);
+      padding-left: 8px;
+      margin-bottom: 2px;
+    }
+
+    /* Policy quick-reference */
+    .policy-rule {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+    .policy-rule-num {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--gold);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .policy-rule-text {
+      font-size: 10px;
+      color: var(--gray-darker);
+      line-height: 1.5;
+    }
+
+    /* ── Main Chat Area ── */
+    main {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-history {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 28px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-history::-webkit-scrollbar { width: 4px; }
+    .chat-history::-webkit-scrollbar-track { background: transparent; }
+    .chat-history::-webkit-scrollbar-thumb { background: var(--gray-mid); border-radius: 2px; }
+
+    /* Empty state */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      color: var(--gray-dark);
+    }
+    .empty-state .mark {
+      font-family: var(--font-tight);
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--black);
+      margin-bottom: 8px;
+    }
+    .empty-state .tagline {
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      color: var(--gray-dark);
+      margin-bottom: 32px;
+    }
+    .empty-prompts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      max-width: 500px;
+    }
+    .empty-prompt-card {
+      background: var(--gray-light);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s;
+    }
+    .empty-prompt-card:hover { border-color: var(--gold); }
+    .empty-prompt-card .card-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+    .empty-prompt-card .card-text {
+      font-size: 11px;
+      color: var(--black);
+      line-height: 1.4;
+    }
+
+    /* Messages */
+    .message {
+      margin-bottom: 24px;
+      max-width: 800px;
+    }
+    .message.user { margin-left: auto; }
+    .message.assistant { margin-right: auto; }
+
+    .message-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .message-role {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .message.user .message-role { color: var(--gray-dark); }
+    .message.assistant .message-role { color: var(--gold); }
+    .message-time {
+      font-size: 9px;
+      color: var(--gray-dark);
+    }
+
+    .message-bubble {
+      padding: 14px 16px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .message.user .message-bubble {
+      background: var(--black);
+      color: var(--white);
+      border-left: 3px solid var(--gold);
+    }
+    .message.assistant .message-bubble {
+      background: var(--gray-light);
+      border-left: 3px solid var(--border);
+      color: var(--black);
+    }
+
+    /* Structured response sections */
+    .response-section {
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--gray-mid);
+    }
+    .response-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+    .section-content {
+      font-size: 12px;
+      line-height: 1.65;
+      color: var(--black);
+      white-space: pre-wrap;
+    }
+
+    /* Compliance badge */
+    .compliance-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+    .compliance-badge.approved { background: #22c55e; color: #fff; }
+    .compliance-badge.revision { background: #f59e0b; color: #fff; }
+    .compliance-badge.noncompliant { background: #ef4444; color: #fff; }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 0;
+    }
+    .typing-indicator.visible { display: flex; }
+    .typing-role {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+    }
+    .typing-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 1.2s infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+
+    /* ── Input Area ── */
+    .input-area {
+      border-top: 1px solid var(--border);
+      padding: 14px 20px;
+      background: var(--white);
+    }
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .input-wrap {
+      flex: 1;
+      position: relative;
+    }
+    textarea {
+      width: 100%;
+      min-height: 42px;
+      max-height: 160px;
+      resize: none;
+      border: 1px solid var(--border);
+      background: var(--gray-light);
+      color: var(--black);
+      font-family: var(--font-main);
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      overflow-y: auto;
+    }
+    textarea:focus { border-color: var(--gold); }
+    textarea::placeholder { color: var(--gray-dark); }
+    .input-hint {
+      font-size: 9px;
+      color: var(--gray-dark);
+      margin-top: 5px;
+      letter-spacing: 0.03em;
+    }
+    .btn-send {
+      background: var(--black);
+      color: var(--white);
+      border: none;
+      font-family: var(--font-tight);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0 20px;
+      height: 42px;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .btn-send:hover { background: var(--gold); }
+    .btn-send:disabled { background: var(--gray-mid); color: var(--gray-dark); cursor: not-allowed; }
+
+    /* ── Right Panel ── */
+    .right-panel {
+      border-left: 1px solid var(--border);
+      background: var(--white);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--black);
+    }
+    .panel-title {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    .panel-body::-webkit-scrollbar { width: 3px; }
+    .panel-body::-webkit-scrollbar-thumb { background: var(--gray-mid); }
+
+    .panel-empty {
+      color: var(--gray-dark);
+      font-size: 11px;
+      text-align: center;
+      margin-top: 40px;
+      line-height: 1.7;
+    }
+
+    .panel-section {
+      margin-bottom: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--gray-light);
+    }
+    .panel-section:last-child { border-bottom: none; }
+    .panel-section-label {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 7px;
+    }
+    .panel-section-content {
+      font-size: 11px;
+      line-height: 1.65;
+      color: var(--black);
+      white-space: pre-wrap;
+    }
+
+    /* ── Status Bar ── */
+    .status-bar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: var(--black);
+      color: #555;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+    }
+    .status-segment {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+    .status-dot.error { background: #ef4444; }
+    .status-text { color: #666; }
+    .status-text.highlight { color: var(--gold); }
+  </style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- Header -->
+  <header>
+    <div class="header-brand">
+      <h1>Maillard Design Department</h1>
+      <span class="subtitle">Creative Authority &middot; Brand Governance</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-panel-toggle" id="panelToggle" onclick="togglePanel()">Structured Output</button>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Department</div>
+      <div class="dept-name">Design Department</div>
+      <div class="dept-desc">Centralized creative authority for Maillard Coffee Roasters. Brand governance, packaging systems, production standards.</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Active Tools</div>
+      <div class="tool-item">
+        <span class="tool-dot"></span>
+        <span class="tool-name">load_brand_system</span>
+        <span class="tool-status">READY</span>
+      </div>
+      <div class="tool-item">
+        <span class="tool-dot"></span>
+        <span class="tool-name">get_brand_rules</span>
+        <span class="tool-status">READY</span>
+      </div>
+      <div class="tool-item">
+        <span class="tool-dot"></span>
+        <span class="tool-name">audit_creative_output</span>
+        <span class="tool-status">READY</span>
+      </div>
+      <div class="tool-item">
+        <span class="tool-dot"></span>
+        <span class="tool-name">generate_packaging_brief</span>
+        <span class="tool-status">READY</span>
+      </div>
+      <div class="tool-item">
+        <span class="tool-dot"></span>
+        <span class="tool-name">generate_image_prompt</span>
+        <span class="tool-status">READY</span>
+      </div>
+      <div class="sidebar-label" style="margin-top:10px;margin-bottom:2px;opacity:0.7;">Generation Engine</div>
+      <div class="tool-item">
+        <span class="tool-dot" style="background:#c8a96e;"></span>
+        <span class="tool-name">generate_packaging_layout</span>
+        <span class="tool-status" style="color:#c8a96e;">SVG</span>
+      </div>
+      <div class="tool-item">
+        <span class="tool-dot" style="background:#c8a96e;"></span>
+        <span class="tool-name">generate_design_image</span>
+        <span class="tool-status" style="color:#c8a96e;">PNG</span>
+      </div>
+      <div class="tool-item">
+        <span class="tool-dot" style="background:#c8a96e;"></span>
+        <span class="tool-name">generate_product_mockup</span>
+        <span class="tool-status" style="color:#c8a96e;">PNG</span>
+      </div>
+      <div class="tool-item">
+        <span class="tool-dot" style="background:#c8a96e;"></span>
+        <span class="tool-name">generate_vector_graphic</span>
+        <span class="tool-status" style="color:#c8a96e;">SVG</span>
+      </div>
+      <div class="tool-item">
+        <span class="tool-dot" style="background:#c8a96e;"></span>
+        <span class="tool-name">build_typography_system</span>
+        <span class="tool-status" style="color:#c8a96e;">JSON</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Brand System</div>
+      <div class="brand-status">
+        <div class="brand-status-indicator" id="brandIndicator"></div>
+        <div class="brand-status-text" id="brandStatusText">Loading...</div>
+      </div>
+      <ul class="brand-file-list">
+        <li>Design Guideline.pdf</li>
+        <li>brand_identity.md</li>
+        <li>typography.md</li>
+        <li>colors.json</li>
+        <li>packaging_rules.md</li>
+        <li>layout_principles.md</li>
+        <li>logo_usage.pdf</li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Policy Reference</div>
+      <div class="policy-rule">
+        <span class="policy-rule-num">01</span>
+        <span class="policy-rule-text">Brand compliance is non-negotiable. Every deliverable clears design review.</span>
+      </div>
+      <div class="policy-rule">
+        <span class="policy-rule-num">02</span>
+        <span class="policy-rule-text">Premium aesthetic standards. Clean layouts, generous whitespace, confident hierarchy.</span>
+      </div>
+      <div class="policy-rule">
+        <span class="policy-rule-num">03</span>
+        <span class="policy-rule-text">Approved typefaces only. No decorative fonts, no improvised pairings.</span>
+      </div>
+      <div class="policy-rule">
+        <span class="policy-rule-num">04</span>
+        <span class="policy-rule-text">Official Maillard palette only. CMYK for print, RGB/HEX for digital.</span>
+      </div>
+      <div class="policy-rule">
+        <span class="policy-rule-num">05</span>
+        <span class="policy-rule-text">Production-ready delivery. PDF/X-1a or PDF/X-4, CMYK with bleed marks.</span>
+      </div>
+      <div class="policy-rule">
+        <span class="policy-rule-num">06</span>
+        <span class="policy-rule-text">Prohibited: gradients, shadows, glow effects, decorative borders, clip art.</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Chat -->
+  <main>
+    <div class="chat-history" id="chatHistory">
+      <div class="empty-state" id="emptyState">
+        <div class="mark">M</div>
+        <div class="tagline">Distinctive Flavor Coffee Roasters &mdash; Design Department</div>
+        <div class="empty-prompts">
+          <div class="empty-prompt-card" onclick="usePrompt('Generate a packaging brief for Ethiopia Yirgacheffe 250g bag, specialty audience, key message: floral brightness')">
+            <div class="card-label">Packaging Brief</div>
+            <div class="card-text">Ethiopia Yirgacheffe 250g bag packaging brief</div>
+          </div>
+          <div class="empty-prompt-card" onclick="usePrompt('Audit this design concept: matte black bag with white sans-serif typography and a copper foil M logomark on the front panel')">
+            <div class="card-label">Brand Audit</div>
+            <div class="card-text">Audit a matte black packaging concept</div>
+          </div>
+          <div class="empty-prompt-card" onclick="usePrompt('Generate a brand-aligned image prompt for an espresso shot in a ceramic cup, editorial social media usage')">
+            <div class="card-label">Image Prompt</div>
+            <div class="card-text">Espresso editorial image for social media</div>
+          </div>
+          <div class="empty-prompt-card" onclick="usePrompt('What are the typography rules for Maillard product labels? Specify typefaces, weights, and sizing scale.')">
+            <div class="card-label">Brand Rules</div>
+            <div class="card-text">Typography rules for product labels</div>
+          </div>
+          <div class="empty-prompt-card" onclick="usePrompt('Generate a packaging layout SVG for Ethiopia Yirgacheffe 250g')">
+            <div class="card-label" style="color:#c8a96e;">Generate Layout</div>
+            <div class="card-text">Ethiopia Yirgacheffe 250g packaging layout SVG</div>
+          </div>
+          <div class="empty-prompt-card" onclick="usePrompt('Generate a design image for Ethiopia Yirgacheffe')">
+            <div class="card-label" style="color:#c8a96e;">Design Image</div>
+            <div class="card-text">Brand-aligned PNG design image</div>
+          </div>
+          <div class="empty-prompt-card" onclick="usePrompt('Generate a product mockup for Ethiopia Yirgacheffe 250g coffee bag')">
+            <div class="card-label" style="color:#c8a96e;">Product Mockup</div>
+            <div class="card-text">3D bag silhouette mockup PNG</div>
+          </div>
+          <div class="empty-prompt-card" onclick="usePrompt('Build the typography system for packaging')">
+            <div class="card-label" style="color:#c8a96e;">Typography System</div>
+            <div class="card-text">Full type hierarchy from brand guidelines</div>
+          </div>
+        </div>
+      </div>
+      <div class="typing-indicator" id="typingIndicator">
+        <span class="typing-role">Design Dept</span>
+        <div class="typing-dots">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-row">
+        <div class="input-wrap">
+          <textarea
+            id="messageInput"
+            placeholder="Submit a design brief, request a brand audit, or ask for design direction..."
+            rows="1"
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this)"
+          ></textarea>
+          <div class="input-hint">Enter to send &nbsp;&middot;&nbsp; Shift+Enter for new line</div>
+        </div>
+        <button class="btn-send" id="sendBtn" onclick="sendMessage()">Send Brief</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Right Panel -->
+  <div class="right-panel" id="rightPanel">
+    <div class="panel-header">
+      <span class="panel-title">Structured Output</span>
+    </div>
+    <div class="panel-body" id="panelBody">
+      <div class="panel-empty" id="panelEmpty">
+        Structured response sections will appear here after the Design Department responds.
+        <br><br>
+        Sections: Design Concept / Layout / Typography / Color / Production / Compliance
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-segment">
+      <div class="status-dot" id="connDot"></div>
+      <span class="status-text" id="connText">Designer MCP</span>
+      <span class="status-text">&middot;</span>
+      <span class="status-text highlight" id="connStatus">Connecting...</span>
+    </div>
+    <div class="status-segment">
+      <span class="status-text">Brand System: </span>
+      <span class="status-text highlight" id="brandSystemStatus">Loading</span>
+    </div>
+    <div class="status-segment">
+      <span class="status-text">maillard/guidelines/</span>
+      <span class="status-text">&middot;</span>
+      <span class="status-text">nineteendesign, Athens 2021</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const API_BASE = 'http://localhost:8000';
+  let panelOpen = false;
+
+  // ── Panel toggle ──────────────────────────────────────────────────────────
+  function togglePanel() {
+    panelOpen = !panelOpen;
+    document.getElementById('app').classList.toggle('panel-open', panelOpen);
+    document.getElementById('panelToggle').classList.toggle('active', panelOpen);
+  }
+
+  // ── Auto-resize textarea ──────────────────────────────────────────────────
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }
+
+  // ── Keyboard handler ──────────────────────────────────────────────────────
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  // ── Use a prompt template ─────────────────────────────────────────────────
+  function usePrompt(text) {
+    const input = document.getElementById('messageInput');
+    input.value = text;
+    autoResize(input);
+    input.focus();
+  }
+
+  // ── Format timestamp ──────────────────────────────────────────────────────
+  function now() {
+    return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+
+  // ── Append user message ───────────────────────────────────────────────────
+  function appendUserMessage(text) {
+    hideEmptyState();
+    const history = document.getElementById('chatHistory');
+    const msg = document.createElement('div');
+    msg.className = 'message user';
+    msg.innerHTML = `
+      <div class="message-meta">
+        <span class="message-role">You</span>
+        <span class="message-time">${now()}</span>
+      </div>
+      <div class="message-bubble">${escHtml(text)}</div>
+    `;
+    history.insertBefore(msg, document.getElementById('typingIndicator'));
+    scrollToBottom();
+  }
+
+  // ── Append assistant message ──────────────────────────────────────────────
+  // ── Extract generated asset URLs from any depth in the response object ──────
+  function extractAssets(obj, found = []) {
+    if (!obj || typeof obj !== 'object') return found;
+    if (obj.url && typeof obj.url === 'string' && obj.url.startsWith('/brand/generated/')) {
+      found.push({ url: obj.url, file: obj.file || obj.url.split('/').pop() });
+    }
+    for (const v of Object.values(obj)) {
+      if (typeof v === 'object') extractAssets(v, found);
+    }
+    return found;
+  }
+
+  function renderAssets(assets) {
+    if (!assets.length) return '';
+    return '<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:10px;">' +
+      assets.map(a => {
+        const ext = a.file.split('.').pop().toLowerCase();
+        const isPng = ext === 'png' || ext === 'jpg';
+        const isSvg = ext === 'svg';
+        const label = escHtml(a.file);
+        const href = escHtml(a.url);
+        if (isPng || isSvg) {
+          return `<div style="border:1px solid var(--border);border-radius:4px;overflow:hidden;max-width:280px;">
+            <img src="${href}" alt="${label}" style="display:block;width:100%;max-height:320px;object-fit:contain;background:#f5f0e8;" loading="lazy"/>
+            <div style="padding:6px 8px;font-size:10px;color:var(--gray-dark);display:flex;justify-content:space-between;align-items:center;">
+              <span>${label}</span>
+              <a href="${href}" download="${label}" style="color:var(--gold);text-decoration:none;font-size:10px;letter-spacing:1px;">↓ DL</a>
+            </div>
+          </div>`;
+        }
+        return `<div style="padding:8px 12px;border:1px solid var(--border);border-radius:4px;font-size:11px;">
+          <a href="${href}" target="_blank" style="color:var(--gold);text-decoration:none;">${label}</a>
+        </div>`;
+      }).join('') + '</div>';
+  }
+
+  function appendAssistantMessage(data) {
+    const history = document.getElementById('chatHistory');
+    const msg = document.createElement('div');
+    msg.className = 'message assistant';
+
+    const assets = extractAssets(data && data.data ? data.data : data);
+    const content = buildStructuredContent(data);
+    const assetHtml = renderAssets(assets);
+
+    msg.innerHTML = `
+      <div class="message-meta">
+        <span class="message-role">Design Dept</span>
+        <span class="message-time">${now()}</span>
+      </div>
+      <div class="message-bubble">${content}${assetHtml}</div>
+    `;
+    history.insertBefore(msg, document.getElementById('typingIndicator'));
+    scrollToBottom();
+  }
+
+  // ── Build structured content from response ────────────────────────────────
+  function buildStructuredContent(data) {
+    // If data has structured fields, render as sections
+    if (data && typeof data === 'object') {
+      const structured = extractSections(data);
+      if (structured.length > 0) {
+        return structured.map(s => `
+          <div class="response-section">
+            <div class="section-label">${escHtml(s.label)}</div>
+            <div class="section-content">${escHtml(s.content)}</div>
+            ${s.badge ? `<span class="compliance-badge ${s.badgeClass}">${escHtml(s.badge)}</span>` : ''}
+          </div>
+        `).join('');
+      }
+    }
+
+    // Fallback: parse raw text for sections
+    const raw = getRawText(data);
+    return renderRawWithSections(raw);
+  }
+
+  // ── Extract known sections from response object ───────────────────────────
+  function extractSections(data) {
+    const sections = [];
+    const keys = ['design_concept', 'layout_structure', 'typography_hierarchy', 'color_usage', 'production_considerations', 'brand_compliance', 'result', 'message', 'output'];
+    const labels = {
+      design_concept: 'Design Concept',
+      layout_structure: 'Layout Structure',
+      typography_hierarchy: 'Typography Hierarchy',
+      color_usage: 'Color Usage',
+      production_considerations: 'Production Considerations',
+      brand_compliance: 'Brand Compliance',
+      result: 'Result',
+      message: 'Response',
+      output: 'Output',
+    };
+
+    for (const key of keys) {
+      if (data[key]) {
+        const s = { label: labels[key] || key, content: String(data[key]) };
+        if (key === 'brand_compliance') {
+          const upper = s.content.toUpperCase();
+          if (upper.includes('APPROVED')) { s.badge = 'APPROVED'; s.badgeClass = 'approved'; }
+          else if (upper.includes('NON-COMPLIANT')) { s.badge = 'NON-COMPLIANT'; s.badgeClass = 'noncompliant'; }
+          else if (upper.includes('NEEDS REVISION') || upper.includes('REVISION')) { s.badge = 'NEEDS REVISION'; s.badgeClass = 'revision'; }
+        }
+        sections.push(s);
+      }
+    }
+    return sections;
+  }
+
+  // ── Get raw text from response ────────────────────────────────────────────
+  function getRawText(data) {
+    if (typeof data === 'string') return data;
+    if (data && data.data) {
+      if (typeof data.data === 'string') return data.data;
+      if (data.data && data.data.result) return String(data.data.result);
+      if (data.data && data.data.message) return String(data.data.message);
+      if (typeof data.data === 'object') return JSON.stringify(data.data, null, 2);
+    }
+    if (data && data.result) return String(data.result);
+    if (data && data.message) return String(data.message);
+    return JSON.stringify(data, null, 2);
+  }
+
+  // ── Render raw text with section detection ────────────────────────────────
+  const SECTION_PATTERNS = [
+    { re: /DESIGN CONCEPT/i, label: 'Design Concept' },
+    { re: /LAYOUT STRUCTURE/i, label: 'Layout Structure' },
+    { re: /TYPOGRAPHY HIERARCHY/i, label: 'Typography Hierarchy' },
+    { re: /COLOR USAGE/i, label: 'Color Usage' },
+    { re: /PRODUCTION CONSIDERATIONS/i, label: 'Production Considerations' },
+    { re: /BRAND COMPLIANCE/i, label: 'Brand Compliance' },
+  ];
+
+  function renderRawWithSections(text) {
+    // Check if text contains any section headers
+    const hasSections = SECTION_PATTERNS.some(p => p.re.test(text));
+    if (!hasSections) {
+      return `<div class="section-content">${escHtml(text)}</div>`;
+    }
+
+    // Split by numbered sections or ALL-CAPS headers
+    const lines = text.split('\n');
+    const sections = [];
+    let current = null;
+
+    for (const line of lines) {
+      const match = SECTION_PATTERNS.find(p => p.re.test(line.trim()));
+      if (match && line.trim().length < 60) {
+        if (current) sections.push(current);
+        current = { label: match.label, content: '' };
+      } else if (current) {
+        current.content += line + '\n';
+      } else {
+        if (!current) current = { label: '', content: '' };
+        current.content += line + '\n';
+      }
+    }
+    if (current) sections.push(current);
+
+    return sections.map(s => {
+      let badge = '';
+      let badgeClass = '';
+      if (s.label === 'Brand Compliance') {
+        const upper = s.content.toUpperCase();
+        if (upper.includes('APPROVED')) { badge = 'APPROVED'; badgeClass = 'approved'; }
+        else if (upper.includes('NON-COMPLIANT')) { badge = 'NON-COMPLIANT'; badgeClass = 'noncompliant'; }
+        else if (upper.includes('NEEDS REVISION') || upper.includes('REVISION')) { badge = 'NEEDS REVISION'; badgeClass = 'revision'; }
+      }
+      return `
+        <div class="response-section">
+          ${s.label ? `<div class="section-label">${escHtml(s.label)}</div>` : ''}
+          <div class="section-content">${escHtml(s.content.trim())}</div>
+          ${badge ? `<span class="compliance-badge ${badgeClass}">${badge}</span>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ── Update right panel with structured data ───────────────────────────────
+  function updatePanel(data) {
+    const body = document.getElementById('panelBody');
+    document.getElementById('panelEmpty').style.display = 'none';
+
+    const raw = getRawText(data);
+    const hasSections = SECTION_PATTERNS.some(p => p.re.test(raw));
+
+    if (hasSections) {
+      const sectionDefs = [
+        { re: /DESIGN CONCEPT/i, label: 'Design Concept', key: 'design_concept' },
+        { re: /LAYOUT STRUCTURE/i, label: 'Layout Structure', key: 'layout_structure' },
+        { re: /TYPOGRAPHY HIERARCHY/i, label: 'Typography Hierarchy', key: 'typography_hierarchy' },
+        { re: /COLOR USAGE/i, label: 'Color Usage', key: 'color_usage' },
+        { re: /PRODUCTION CONSIDERATIONS/i, label: 'Production', key: 'production_considerations' },
+        { re: /BRAND COMPLIANCE/i, label: 'Brand Compliance', key: 'brand_compliance' },
+      ];
+
+      // Try structured object first
+      if (data && typeof data === 'object') {
+        const objSections = extractSections(data);
+        if (objSections.length > 0) {
+          body.innerHTML = objSections.map(s => `
+            <div class="panel-section">
+              <div class="panel-section-label">${escHtml(s.label)}</div>
+              <div class="panel-section-content">${escHtml(s.content)}</div>
+              ${s.badge ? `<span class="compliance-badge ${s.badgeClass}">${escHtml(s.badge)}</span>` : ''}
+            </div>
+          `).join('');
+          if (!panelOpen) togglePanel();
+          return;
+        }
+      }
+
+      // Parse raw text into sections
+      const lines = raw.split('\n');
+      const sections = [];
+      let current = null;
+      for (const line of lines) {
+        const match = sectionDefs.find(s => s.re.test(line.trim()) && line.trim().length < 60);
+        if (match) {
+          if (current) sections.push(current);
+          current = { label: match.label, content: '' };
+        } else if (current) {
+          current.content += line + '\n';
+        }
+      }
+      if (current) sections.push(current);
+
+      if (sections.length > 0) {
+        body.innerHTML = sections.map(s => {
+          let badge = '';
+          let badgeClass = '';
+          if (s.label === 'Brand Compliance') {
+            const upper = s.content.toUpperCase();
+            if (upper.includes('APPROVED')) { badge = 'APPROVED'; badgeClass = 'approved'; }
+            else if (upper.includes('NON-COMPLIANT')) { badge = 'NON-COMPLIANT'; badgeClass = 'noncompliant'; }
+            else if (upper.includes('REVISION')) { badge = 'NEEDS REVISION'; badgeClass = 'revision'; }
+          }
+          return `
+            <div class="panel-section">
+              <div class="panel-section-label">${escHtml(s.label)}</div>
+              <div class="panel-section-content">${escHtml(s.content.trim())}</div>
+              ${badge ? `<span class="compliance-badge ${badgeClass}">${badge}</span>` : ''}
+            </div>
+          `;
+        }).join('');
+        if (!panelOpen) togglePanel();
+        return;
+      }
+    }
+
+    // Fallback: just show the raw text
+    body.innerHTML = `<div class="panel-section"><div class="panel-section-content">${escHtml(raw)}</div></div>`;
+    if (!panelOpen) togglePanel();
+  }
+
+  // ── Send message ──────────────────────────────────────────────────────────
+  async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    if (!message) return;
+
+    const sendBtn = document.getElementById('sendBtn');
+    sendBtn.disabled = true;
+    input.value = '';
+    input.style.height = 'auto';
+
+    appendUserMessage(message);
+    showTyping();
+
+    try {
+      const response = await fetch(`${API_BASE}/mcp/dispatch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task: message,
+          department: 'designer'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      hideTyping();
+      appendAssistantMessage(data);
+      updatePanel(data);
+      setConnected(true);
+
+    } catch (err) {
+      hideTyping();
+      appendErrorMessage(err.message);
+      setConnected(false);
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+
+  // ── Error message ─────────────────────────────────────────────────────────
+  function appendErrorMessage(text) {
+    const history = document.getElementById('chatHistory');
+    const msg = document.createElement('div');
+    msg.className = 'message assistant';
+    msg.innerHTML = `
+      <div class="message-meta">
+        <span class="message-role" style="color:#ef4444;">Error</span>
+        <span class="message-time">${now()}</span>
+      </div>
+      <div class="message-bubble" style="border-left-color:#ef4444;">
+        <div class="section-content" style="color:#ef4444;">${escHtml(text)}</div>
+        <div style="font-size:11px;color:var(--gray-dark);margin-top:8px;">Ensure the server is running at ${API_BASE} and the Designer MCP is loaded.</div>
+      </div>
+    `;
+    history.insertBefore(msg, document.getElementById('typingIndicator'));
+    scrollToBottom();
+  }
+
+  // ── UI helpers ────────────────────────────────────────────────────────────
+  function hideEmptyState() {
+    const es = document.getElementById('emptyState');
+    if (es) es.style.display = 'none';
+  }
+
+  function showTyping() {
+    document.getElementById('typingIndicator').classList.add('visible');
+    scrollToBottom();
+  }
+
+  function hideTyping() {
+    document.getElementById('typingIndicator').classList.remove('visible');
+  }
+
+  function scrollToBottom() {
+    const h = document.getElementById('chatHistory');
+    setTimeout(() => { h.scrollTop = h.scrollHeight; }, 50);
+  }
+
+  function escHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(String(str)));
+    return d.innerHTML;
+  }
+
+  function setConnected(ok) {
+    document.getElementById('connDot').className = 'status-dot' + (ok ? '' : ' error');
+    document.getElementById('connStatus').textContent = ok ? 'Connected' : 'Connection Error';
+  }
+
+  // ── Init: check API connection ────────────────────────────────────────────
+  async function init() {
+    try {
+      const r = await fetch(`${API_BASE}/mcp/departments`);
+      if (r.ok) {
+        setConnected(true);
+        document.getElementById('brandIndicator').style.background = '#22c55e';
+        document.getElementById('brandStatusText').textContent = 'Loaded';
+        document.getElementById('brandSystemStatus').textContent = 'Loaded';
+      } else {
+        throw new Error('Not OK');
+      }
+    } catch {
+      setConnected(false);
+      document.getElementById('brandIndicator').style.background = '#f59e0b';
+      document.getElementById('brandStatusText').textContent = 'Offline';
+      document.getElementById('brandSystemStatus').textContent = 'Offline';
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Maillard Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface-2: #1c1c1c;
+    --surface-3: #242424;
+    --border: #2a2a2a;
+    --border-hover: #3a3a3a;
+    --gold: #b8860b;
+    --gold-light: #d4a017;
+    --gold-dim: rgba(184, 134, 11, 0.15);
+    --gold-glow: rgba(184, 134, 11, 0.08);
+    --white: #f0f0f0;
+    --muted: #777;
+    --muted-light: #999;
+    --text: #e0e0e0;
+    --green: #22c55e;
+    --green-dim: rgba(34, 197, 94, 0.12);
+    --blue: #3b82f6;
+    --blue-dim: rgba(59, 130, 246, 0.12);
+    --red: #ef4444;
+    --red-dim: rgba(239, 68, 68, 0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --font: 'Inter', -apple-system, sans-serif;
+  }
+
+  html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--text); }
+
+  /* ── Layout ── */
+  .app {
+    display: flex;
+    height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-header h1 {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--gold);
+    letter-spacing: -0.3px;
+  }
+
+  .sidebar-header p {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  .sidebar-section {
+    padding: 16px 12px 8px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .dept-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 8px;
+  }
+
+  .dept-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-bottom: 2px;
+  }
+
+  .dept-item:hover { background: var(--surface-2); }
+  .dept-item.active { background: var(--gold-dim); }
+
+  .dept-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    background: var(--surface-3);
+    flex-shrink: 0;
+  }
+
+  .dept-item.active .dept-icon { background: var(--gold-dim); }
+
+  .dept-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .dept-item.active .dept-name { color: var(--gold-light); }
+
+  .dept-sub {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  .new-chat-btn {
+    margin: 12px;
+    padding: 10px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font);
+  }
+
+  .new-chat-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: var(--gold-glow);
+  }
+
+  /* ── Main ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    height: 52px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 12px;
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+
+  .topbar-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--white);
+  }
+
+  .topbar-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--gold-dim);
+    color: var(--gold-light);
+  }
+
+  .topbar-status {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* ── Messages ── */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .messages::-webkit-scrollbar { width: 6px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .msg-group {
+    display: flex;
+    gap: 12px;
+    max-width: 780px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 6px 0;
+  }
+
+  .msg-group.user { flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+
+  .msg-group.bot .msg-avatar { background: var(--gold-dim); color: var(--gold-light); }
+  .msg-group.user .msg-avatar { background: var(--surface-3); color: var(--muted); }
+
+  .msg-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .msg-meta {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .msg-group.user .msg-meta { justify-content: flex-end; }
+
+  .msg-dept-tag {
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .msg-bubble {
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 0.86rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .msg-group.bot .msg-bubble {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+    color: var(--text);
+  }
+
+  .msg-group.user .msg-bubble {
+    background: var(--gold-dim);
+    border: 1px solid rgba(184, 134, 11, 0.25);
+    border-top-right-radius: 4px;
+    color: var(--white);
+  }
+
+  /* Markdown-ish rendering */
+  .msg-bubble strong { color: var(--white); }
+  .msg-bubble code {
+    background: var(--surface-3);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.82em;
+  }
+
+  /* ── Typing indicator ── */
+  .typing-dots {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px 0;
+  }
+
+  .typing-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: bounce 1s ease infinite;
+  }
+
+  .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes bounce { 0%,80%,100%{transform:scale(1);opacity:0.4} 40%{transform:scale(1.3);opacity:1} }
+
+  /* ── Routing indicator ── */
+  .route-indicator {
+    max-width: 780px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .route-indicator .route-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .route-indicator .route-tag {
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ── Welcome ── */
+  .welcome {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .welcome-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 0.7;
+  }
+
+  .welcome h2 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+
+  .welcome p {
+    font-size: 0.85rem;
+    color: var(--muted);
+    max-width: 420px;
+    line-height: 1.5;
+  }
+
+  .quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 28px;
+    justify-content: center;
+  }
+
+  .quick-action {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface-2);
+    color: var(--muted-light);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font);
+  }
+
+  .quick-action:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+    background: var(--gold-glow);
+  }
+
+  /* ── Input area ── */
+  .input-area {
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    background: var(--surface);
+  }
+
+  .input-row {
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .input-wrap {
+    flex: 1;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: flex-end;
+    transition: border-color 0.15s;
+    padding: 4px;
+  }
+
+  .input-wrap:focus-within { border-color: var(--gold); }
+
+  .input-wrap textarea {
+    flex: 1;
+    border: none;
+    background: none;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.88rem;
+    padding: 10px 12px;
+    resize: none;
+    height: 44px;
+    max-height: 160px;
+    line-height: 1.45;
+    outline: none;
+  }
+
+  .input-wrap textarea::placeholder { color: var(--muted); }
+
+  .send-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    border: none;
+    background: var(--gold);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, opacity 0.15s;
+    flex-shrink: 0;
+  }
+
+  .send-btn:hover { background: var(--gold-light); }
+  .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .send-btn svg { width: 18px; height: 18px; }
+
+  .input-hint {
+    max-width: 780px;
+    margin: 6px auto 0;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* ── Mode selector ── */
+  .mode-selector {
+    display: flex;
+    gap: 4px;
+    margin-right: 4px;
+  }
+
+  .mode-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font);
+    white-space: nowrap;
+  }
+
+  .mode-btn:hover { color: var(--text); background: var(--surface-3); }
+  .mode-btn.active { color: var(--gold-light); background: var(--gold-dim); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .messages { padding: 16px; }
+    .input-area { padding: 12px 16px; }
+  }
+
+  /* Department colors */
+  .dept-designer     { background: #7c3aed20; color: #a78bfa; }
+  .dept-recipe       { background: #ea580c20; color: #fb923c; }
+  .dept-marketing    { background: #db277820; color: #f472b6; }
+  .dept-sales        { background: #16a34a20; color: #4ade80; }
+  .dept-analyst      { background: #2563eb20; color: #60a5fa; }
+  .dept-operations   { background: #ca8a0420; color: #fbbf24; }
+  .dept-procurement  { background: #0d948820; color: #2dd4bf; }
+  .dept-accounting   { background: #64748b20; color: #94a3b8; }
+  .dept-legal        { background: #78716c20; color: #a8a29e; }
+  .dept-hr           { background: #e11d4820; color: #fb7185; }
+  .dept-executive    { background: #b8860b20; color: #d4a017; }
+  .dept-coffee       { background: #b8860b20; color: #d4a017; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>Maillard Agent</h1>
+      <p>AI-Powered Coffee Intelligence</p>
+    </div>
+
+    <button class="new-chat-btn" onclick="newChat()">+ New conversation</button>
+
+    <div class="sidebar-section">Departments</div>
+    <div class="dept-list" id="dept-list">
+      <div class="dept-item active" data-dept="all" onclick="selectDept('all')">
+        <div class="dept-icon">*</div>
+        <div>
+          <div class="dept-name">Auto-Route</div>
+          <div class="dept-sub">AI picks the best dept</div>
+        </div>
+      </div>
+      <div class="dept-item" data-dept="coffee" onclick="selectDept('coffee')">
+        <div class="dept-icon">&#9749;</div>
+        <div>
+          <div class="dept-name">Coffee Expert</div>
+          <div class="dept-sub">SCA knowledge &amp; recipes</div>
+        </div>
+      </div>
+      <div class="dept-item" data-dept="recipe" onclick="selectDept('recipe')">
+        <div class="dept-icon">&#128221;</div>
+        <div>
+          <div class="dept-name">Recipe</div>
+          <div class="dept-sub">Drinks, food, techniques</div>
+        </div>
+      </div>
+      <div class="dept-item" data-dept="designer" onclick="selectDept('designer')">
+        <div class="dept-icon">&#127912;</div>
+        <div>
+          <div class="dept-name">Designer</div>
+          <div class="dept-sub">Brand, packaging, visuals</div>
+        </div>
+      </div>
+      <div class="dept-item" data-dept="marketing" onclick="selectDept('marketing')">
+        <div class="dept-icon">&#128227;</div>
+        <div>
+          <div class="dept-name">Marketing</div>
+          <div class="dept-sub">Campaigns, social, content</div>
+        </div>
+      </div>
+      <div class="dept-item" data-dept="sales" onclick="selectDept('sales')">
+        <div class="dept-icon">&#128200;</div>
+        <div>
+          <div class="dept-name">Sales</div>
+          <div class="dept-sub">Revenue, clients, pipeline</div>
+        </div>
+      </div>
+      <div class="dept-item" data-dept="analyst" onclick="selectDept('analyst')">
+        <div class="dept-icon">&#128202;</div>
+        <div>
+          <div class="dept-name">Analyst</div>
+          <div class="dept-sub">Data, metrics, insights</div>
+        </div>
+      </div>
+      <div class="dept-item" data-dept="operations" onclick="selectDept('operations')">
+        <div class="dept-icon">&#9881;</div>
+        <div>
+          <div class="dept-name">Operations</div>
+          <div class="dept-sub">Shifts, equipment, inventory</div>
+        </div>
+      </div>
+      <div class="dept-item" data-dept="procurement" onclick="selectDept('procurement')">
+        <div class="dept-icon">&#128230;</div>
+        <div>
+          <div class="dept-name">Procurement</div>
+          <div class="dept-sub">Suppliers, sourcing, beans</div>
+        </div>
+      </div>
+      <div class="dept-item" data-dept="accounting" onclick="selectDept('accounting')">
+        <div class="dept-icon">&#128176;</div>
+        <div>
+          <div class="dept-name">Accounting</div>
+          <div class="dept-sub">Budget, invoices, P&amp;L</div>
+        </div>
+      </div>
+      <div class="dept-item" data-dept="hr" onclick="selectDept('hr')">
+        <div class="dept-icon">&#128101;</div>
+        <div>
+          <div class="dept-name">HR</div>
+          <div class="dept-sub">Hiring, staff, training</div>
+        </div>
+      </div>
+      <div class="dept-item" data-dept="legal" onclick="selectDept('legal')">
+        <div class="dept-icon">&#9878;</div>
+        <div>
+          <div class="dept-name">Legal</div>
+          <div class="dept-sub">Contracts, compliance</div>
+        </div>
+      </div>
+      <div class="dept-item" data-dept="executive" onclick="selectDept('executive')">
+        <div class="dept-icon">&#127942;</div>
+        <div>
+          <div class="dept-name">Executive</div>
+          <div class="dept-sub">Strategy, vision, decisions</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main area -->
+  <div class="main">
+    <!-- Top bar -->
+    <div class="topbar">
+      <span class="topbar-title" id="topbar-title">Maillard Agent</span>
+      <span class="topbar-badge" id="topbar-badge">Auto-Route</span>
+      <div class="topbar-status">
+        <div class="status-dot"></div>
+        <span>Online</span>
+      </div>
+    </div>
+
+    <!-- Messages / Welcome -->
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">&#9749;</div>
+        <h2>Maillard Agent</h2>
+        <p>Your AI-powered business assistant for Maillard Coffee Roasters. Ask anything about coffee, recipes, design, operations, or strategy.</p>
+        <div class="quick-actions">
+          <button class="quick-action" onclick="quickSend('How do I make a freddo espresso?')">Freddo espresso recipe</button>
+          <button class="quick-action" onclick="quickSend('Design a new label for Ethiopia Yirgacheffe 250g')">Design a label</button>
+          <button class="quick-action" onclick="quickSend('What are our top-selling products this month?')">Sales report</button>
+          <button class="quick-action" onclick="quickSend('Create a social media campaign for our new cold brew')">Marketing campaign</button>
+          <button class="quick-action" onclick="quickSend('What espresso ratio should I use for a 22g dose?')">Espresso ratio</button>
+          <button class="quick-action" onclick="quickSend('Draft a supplier contract for green coffee')">Legal draft</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <div class="input-row">
+        <div class="input-wrap">
+          <textarea id="input" rows="1" placeholder="Ask anything..."
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"
+            oninput="autoResize(this)"></textarea>
+          <div class="mode-selector">
+            <button class="mode-btn active" id="mode-smart" onclick="setMode('smart')" title="Uses Coffee Expert for knowledge questions, MCP departments for business tasks">Smart</button>
+            <button class="mode-btn" id="mode-mcp" onclick="setMode('mcp')" title="Always route through MCP departments">MCP</button>
+            <button class="mode-btn" id="mode-chat" onclick="setMode('chat')" title="Always use Coffee Expert chat">Chat</button>
+          </div>
+        </div>
+        <button class="send-btn" id="send-btn" onclick="send()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+      <div class="input-hint">
+        <span id="mode-hint">Smart mode: auto-routes to Coffee Expert or MCP departments</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = location.origin;
+let sessionId = 'agent_' + Date.now();
+let selectedDept = 'all';
+let mode = 'smart'; // smart | mcp | chat
+let isTyping = false;
+
+const DEPT_META = {
+  all:          { label: 'Auto-Route',   color: 'gold' },
+  coffee:       { label: 'Coffee Expert',color: 'coffee' },
+  recipe:       { label: 'Recipe',       color: 'recipe' },
+  designer:     { label: 'Designer',     color: 'designer' },
+  marketing:    { label: 'Marketing',    color: 'marketing' },
+  sales:        { label: 'Sales',        color: 'sales' },
+  analyst:      { label: 'Analyst',      color: 'analyst' },
+  operations:   { label: 'Operations',   color: 'operations' },
+  procurement:  { label: 'Procurement',  color: 'procurement' },
+  accounting:   { label: 'Accounting',   color: 'accounting' },
+  hr:           { label: 'HR',           color: 'hr' },
+  legal:        { label: 'Legal',        color: 'legal' },
+  executive:    { label: 'Executive',    color: 'executive' },
+};
+
+// ── Department selection ──
+function selectDept(dept) {
+  selectedDept = dept;
+  document.querySelectorAll('.dept-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.dept === dept);
+  });
+  const meta = DEPT_META[dept] || DEPT_META.all;
+  document.getElementById('topbar-badge').textContent = meta.label;
+  document.getElementById('input').focus();
+}
+
+// ── Mode selection ──
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('mode-' + m).classList.add('active');
+  const hints = {
+    smart: 'Smart mode: auto-routes to Coffee Expert or MCP departments',
+    mcp:   'MCP mode: always routes through department agents',
+    chat:  'Chat mode: direct conversation with Coffee Expert'
+  };
+  document.getElementById('mode-hint').textContent = hints[m];
+}
+
+// ── Auto-resize textarea ──
+function autoResize(el) {
+  el.style.height = '44px';
+  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+}
+
+// ── New chat ──
+function newChat() {
+  sessionId = 'agent_' + Date.now();
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = '';
+  // Re-add welcome
+  msgs.innerHTML = `
+    <div class="welcome" id="welcome">
+      <div class="welcome-icon">&#9749;</div>
+      <h2>Maillard Agent</h2>
+      <p>Your AI-powered business assistant for Maillard Coffee Roasters. Ask anything about coffee, recipes, design, operations, or strategy.</p>
+      <div class="quick-actions">
+        <button class="quick-action" onclick="quickSend('How do I make a freddo espresso?')">Freddo espresso recipe</button>
+        <button class="quick-action" onclick="quickSend('Design a new label for Ethiopia Yirgacheffe 250g')">Design a label</button>
+        <button class="quick-action" onclick="quickSend('What are our top-selling products this month?')">Sales report</button>
+        <button class="quick-action" onclick="quickSend('Create a social media campaign for our new cold brew')">Marketing campaign</button>
+        <button class="quick-action" onclick="quickSend('What espresso ratio should I use for a 22g dose?')">Espresso ratio</button>
+        <button class="quick-action" onclick="quickSend('Draft a supplier contract for green coffee')">Legal draft</button>
+      </div>
+    </div>`;
+}
+
+// ── Quick send ──
+function quickSend(text) {
+  document.getElementById('input').value = text;
+  send();
+}
+
+// ── Determine route ──
+function resolveRoute(text) {
+  // If user selected a specific dept, use it
+  if (selectedDept !== 'all') {
+    return selectedDept === 'coffee' ? { type: 'chat' } : { type: 'mcp', dept: selectedDept };
+  }
+
+  // If mode is forced
+  if (mode === 'chat') return { type: 'chat' };
+  if (mode === 'mcp') return { type: 'mcp', dept: null }; // auto-route
+
+  // Smart mode: use /mcp/route to preview, but for speed we do client-side heuristic
+  // Coffee knowledge questions go to chat, business tasks go to MCP
+  const lower = text.toLowerCase();
+  const coffeePatterns = /\b(what is|explain|how does|tell me about|teach|difference between|why|sca|cupping|roast|grind|brew ratio|extraction|tds|arabica|robusta|processing method|ferment|altitude|variety|cultivar)\b/;
+  if (coffeePatterns.test(lower) && !/\b(brand|design|campaign|budget|hire|contract|supplier|invoice|schedule)\b/.test(lower)) {
+    return { type: 'chat' };
+  }
+  return { type: 'mcp', dept: null };
+}
+
+// ── Send message ──
+async function send() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text || isTyping) return;
+
+  input.value = '';
+  input.style.height = '44px';
+
+  // Remove welcome
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+
+  // Add user message
+  addMessage('user', text);
+
+  const route = resolveRoute(text);
+  isTyping = true;
+  document.getElementById('send-btn').disabled = true;
+
+  // Show routing indicator
+  const routeLabel = route.type === 'chat' ? 'Coffee Expert' : (route.dept ? DEPT_META[route.dept]?.label : 'Auto-routing...');
+  const routeEl = addRouteIndicator(routeLabel);
+
+  // Show typing
+  const typingEl = addTyping();
+
+  try {
+    let response, dept;
+
+    if (route.type === 'chat') {
+      // Direct CoffeeAgent chat
+      const res = await fetch(API + '/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, session_id: sessionId })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Chat request failed');
+      response = data.response;
+      dept = 'coffee';
+    } else {
+      // MCP chat — dispatches + Claude summarises
+      const payload = { message: text, session_id: sessionId };
+      if (route.dept) payload.department = route.dept;
+      const res = await fetch(API + '/mcp/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || data.error || 'Dispatch failed');
+      dept = data.department || route.dept || 'executive';
+      response = data.response;
+    }
+
+    // Update route indicator with actual dept
+    const meta = DEPT_META[dept] || DEPT_META.executive;
+    routeEl.querySelector('.route-tag').textContent = 'Routed to ' + meta.label;
+    routeEl.querySelector('.route-tag').className = 'route-tag dept-' + meta.color;
+
+    typingEl.remove();
+    addMessage('bot', response, dept);
+
+  } catch (e) {
+    typingEl.remove();
+    routeEl.querySelector('.route-tag').textContent = 'Error';
+    addMessage('bot', 'Error: ' + e.message, 'executive');
+  } finally {
+    isTyping = false;
+    document.getElementById('send-btn').disabled = false;
+    input.focus();
+  }
+}
+
+// ── Extract readable response from MCP data ──
+function extractResponse(data) {
+  // If data.data is a string, return it
+  if (typeof data.data === 'string') return data.data;
+
+  // If data.data has a response/answer/text/result field
+  if (data.data) {
+    const d = data.data;
+    if (typeof d === 'object') {
+      // Try common response fields
+      for (const key of ['response', 'answer', 'text', 'result', 'content', 'message', 'output']) {
+        if (d[key] && typeof d[key] === 'string') return d[key];
+      }
+      // Stringify as formatted JSON
+      return JSON.stringify(d, null, 2);
+    }
+    return String(d);
+  }
+
+  // Fallback: show status and department
+  if (data.error) return 'Error: ' + data.error;
+  return JSON.stringify(data, null, 2);
+}
+
+// ── DOM helpers ──
+function addMessage(role, text, dept) {
+  const msgs = document.getElementById('messages');
+  const group = document.createElement('div');
+  group.className = 'msg-group ' + role;
+
+  const deptMeta = DEPT_META[dept] || {};
+  const avatarText = role === 'user' ? 'You' : 'M';
+  const metaLabel = role === 'bot' && dept ? `<span class="msg-dept-tag dept-${deptMeta.color || 'gold'}">${deptMeta.label || dept}</span>` : '';
+
+  group.innerHTML = `
+    <div class="msg-avatar">${avatarText}</div>
+    <div class="msg-body">
+      <div class="msg-meta">
+        ${role === 'bot' ? 'Maillard Agent' : 'You'}
+        ${metaLabel}
+        <span>${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+      </div>
+      <div class="msg-bubble"></div>
+    </div>`;
+
+  // Set text content safely (no innerHTML for user content)
+  group.querySelector('.msg-bubble').textContent = text;
+
+  msgs.appendChild(group);
+  msgs.scrollTop = msgs.scrollHeight;
+  return group;
+}
+
+function addTyping() {
+  const msgs = document.getElementById('messages');
+  const group = document.createElement('div');
+  group.className = 'msg-group bot';
+  group.id = 'typing-indicator';
+  group.innerHTML = `
+    <div class="msg-avatar">M</div>
+    <div class="msg-body">
+      <div class="msg-bubble">
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+      </div>
+    </div>`;
+  msgs.appendChild(group);
+  msgs.scrollTop = msgs.scrollHeight;
+  return group;
+}
+
+function addRouteIndicator(label) {
+  const msgs = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'route-indicator';
+  el.innerHTML = `
+    <div class="route-line"></div>
+    <span class="route-tag">${label}</span>
+    <div class="route-line"></div>`;
+  msgs.appendChild(el);
+  return el;
+}
+
+// Focus input on load
+document.getElementById('input').focus();
+</script>
+</body>
+</html>

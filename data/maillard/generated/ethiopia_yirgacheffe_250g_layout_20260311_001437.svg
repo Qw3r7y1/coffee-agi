@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1692" height="1314" viewBox="0 0 1692 1314">
+  <defs>
+    <style>
+      text { font-family: Georgia, "Times New Roman", serif; fill: #1A1A1A; }
+      .sans { font-family: "Helvetica Neue", Arial, sans-serif; }
+      .label { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 9px; fill: #3D3832; letter-spacing: 2px; }
+      .grid { stroke: #C8A96E; stroke-width: 0.5; stroke-dasharray: 4,4; opacity: 0.35; }
+    </style>
+    <rect id="bf" x="51" y="51" width="774" height="1152" fill="none" stroke="#E8000070" stroke-width="0.75" stroke-dasharray="3,3"/>
+    <rect id="bb" x="867" y="51" width="774" height="1152" fill="none" stroke="#E8000070" stroke-width="0.75" stroke-dasharray="3,3"/>
+  </defs>
+  <rect width="1692" height="1314" fill="#E8E2D8"/>
+  <!-- FRONT PANEL -->
+  <rect x="60" y="60" width="756" height="1134" fill="#F5F0E8"/>
+  <rect x="60" y="60" width="756" height="1134" fill="none" stroke="#1A1A1A" stroke-width="1.5"/>
+  <rect x="60" y="60" width="756" height="5" fill="#C8A96E"/>
+  <rect x="60" y="1189" width="756" height="5" fill="#C8A96E"/>
+  <line class="grid" x1="186.0" y1="60" x2="186.0" y2="1194"/>
+  <line class="grid" x1="312.0" y1="60" x2="312.0" y2="1194"/>
+  <line class="grid" x1="438.0" y1="60" x2="438.0" y2="1194"/>
+  <line class="grid" x1="564.0" y1="60" x2="564.0" y2="1194"/>
+  <line class="grid" x1="690.0" y1="60" x2="690.0" y2="1194"/>
+  <line class="grid" x1="60" y1="154.5" x2="816" y2="154.5"/>
+  <line class="grid" x1="60" y1="249.0" x2="816" y2="249.0"/>
+  <line class="grid" x1="60" y1="343.5" x2="816" y2="343.5"/>
+  <line class="grid" x1="60" y1="438.0" x2="816" y2="438.0"/>
+  <line class="grid" x1="60" y1="532.5" x2="816" y2="532.5"/>
+  <line class="grid" x1="60" y1="627.0" x2="816" y2="627.0"/>
+  <line class="grid" x1="60" y1="721.5" x2="816" y2="721.5"/>
+  <line class="grid" x1="60" y1="816.0" x2="816" y2="816.0"/>
+  <line class="grid" x1="60" y1="910.5" x2="816" y2="910.5"/>
+  <line class="grid" x1="60" y1="1005.0" x2="816" y2="1005.0"/>
+  <line class="grid" x1="60" y1="1099.5" x2="816" y2="1099.5"/>
+  <rect x="108" y="108" width="660" height="1038" fill="none" stroke="#C8A96E" stroke-width="0.75" stroke-dasharray="6,3" opacity="0.5"/>
+  <text x="66" y="74" class="label">FRONT PANEL · 756×1134px · +3mm BLEED</text>
+  <!-- Logo zone -->
+  <rect x="128" y="118.0" width="620" height="169.0" fill="none" stroke="#C8A96E" stroke-width="1" opacity="0.7"/>
+  <text x="438" y="208" text-anchor="middle" font-size="16" letter-spacing="5" fill="#3D3832" class="sans">MAILLARD</text>
+  <text x="438" y="222" text-anchor="middle" class="label">LOGO ZONE — MINIMUM 20mm WIDE</text>
+  <!-- Product name -->
+  <text x="438" y="309" text-anchor="middle" font-size="38" font-weight="bold" letter-spacing="1">ETHIOPIA YIRGACHEFFE</text>
+  <text x="438" y="361" text-anchor="middle" font-size="13" letter-spacing="3" fill="#3D3832" class="sans">SINGLE ORIGIN · SPECIALTY GRADE</text>
+  <line x1="158" y1="391.0" x2="718" y2="391.0" stroke="#C8A96E" stroke-width="1"/>
+  <!-- Flavour descriptor zone -->
+  <text x="438" y="443" text-anchor="middle" font-size="13" fill="#3D3832">[FLAVOUR DESCRIPTOR]</text>
+  <text x="438" y="467" text-anchor="middle" font-size="11" fill="#3D3832" class="sans">[PROCESSING METHOD · ALTITUDE · REGION]</text>
+  <!-- Weight zone -->
+  <line x1="158" y1="1078" x2="718" y2="1078" stroke="#C8A96E" stroke-width="1"/>
+  <text x="438" y="1106" text-anchor="middle" font-size="20" letter-spacing="4" class="sans">250G</text>
+  <text x="438" y="1128" text-anchor="middle" class="label">DISTINCTIVE FLAVOR COFFEE ROASTERS</text>
+  <!-- BACK PANEL -->
+  <rect x="876" y="60" width="756" height="1134" fill="#F5F0E8"/>
+  <rect x="876" y="60" width="756" height="1134" fill="none" stroke="#1A1A1A" stroke-width="1.5"/>
+  <rect x="876" y="60" width="756" height="5" fill="#C8A96E"/>
+  <rect x="876" y="1189" width="756" height="5" fill="#C8A96E"/>
+  <line class="grid" x1="1002.0" y1="60" x2="1002.0" y2="1194"/>
+  <line class="grid" x1="1128.0" y1="60" x2="1128.0" y2="1194"/>
+  <line class="grid" x1="1254.0" y1="60" x2="1254.0" y2="1194"/>
+  <line class="grid" x1="1380.0" y1="60" x2="1380.0" y2="1194"/>
+  <line class="grid" x1="1506.0" y1="60" x2="1506.0" y2="1194"/>
+  <line class="grid" x1="876" y1="154.5" x2="1632" y2="154.5"/>
+  <line class="grid" x1="876" y1="249.0" x2="1632" y2="249.0"/>
+  <line class="grid" x1="876" y1="343.5" x2="1632" y2="343.5"/>
+  <line class="grid" x1="876" y1="438.0" x2="1632" y2="438.0"/>
+  <line class="grid" x1="876" y1="532.5" x2="1632" y2="532.5"/>
+  <line class="grid" x1="876" y1="627.0" x2="1632" y2="627.0"/>
+  <line class="grid" x1="876" y1="721.5" x2="1632" y2="721.5"/>
+  <line class="grid" x1="876" y1="816.0" x2="1632" y2="816.0"/>
+  <line class="grid" x1="876" y1="910.5" x2="1632" y2="910.5"/>
+  <line class="grid" x1="876" y1="1005.0" x2="1632" y2="1005.0"/>
+  <line class="grid" x1="876" y1="1099.5" x2="1632" y2="1099.5"/>
+  <rect x="924" y="108" width="660" height="1038" fill="none" stroke="#C8A96E" stroke-width="0.75" stroke-dasharray="6,3" opacity="0.5"/>
+  <text x="882" y="74" class="label">BACK PANEL · 756×1134px · +3mm BLEED</text>
+  <!-- Origin story zone -->
+  <text x="924" y="118" font-size="9" letter-spacing="3" fill="#3D3832" class="sans">ORIGIN</text>
+  <line x1="924" y1="126" x2="1584" y2="126" stroke="#C8A96E" stroke-width="0.75"/>
+  <text x="924" y="148" font-size="11" fill="#3D3832">[Country · Region · Farm / Co-op name]</text>
+  <text x="924" y="168" font-size="11" fill="#3D3832">[Altitude: _ masl · Varietal: _]</text>
+  <text x="924" y="188" font-size="11" fill="#3D3832">[Process: _ · Harvest: _]</text>
+  <text x="924" y="213" font-size="10" fill="#3D3832" class="sans">[2–3 sentence origin story. Flavour notes. Roast profile.]</text>
+  <!-- Brew guide zone -->
+  <text x="924" y="448" font-size="9" letter-spacing="3" fill="#3D3832" class="sans">BREW GUIDE</text>
+  <line x1="924" y1="456.0" x2="1584" y2="456.0" stroke="#C8A96E" stroke-width="0.75"/>
+  <text x="924" y="476" font-size="9" letter-spacing="2" fill="#3D3832" class="sans">ESPRESSO</text>
+  <text x="1024" y="476" font-size="10" fill="#3D3832">22 g → 50 ml · 93 °C · 28–32 s</text>
+  <text x="924" y="504" font-size="9" letter-spacing="2" fill="#3D3832" class="sans">POUR OVER</text>
+  <text x="1024" y="504" font-size="10" fill="#3D3832">15 g : 250 ml · 93 °C · 3:30 min</text>
+  <text x="924" y="532" font-size="9" letter-spacing="2" fill="#3D3832" class="sans">FRENCH PRESS</text>
+  <text x="1024" y="532" font-size="10" fill="#3D3832">60 g/L · 93 °C · 4:00 min</text>
+  <text x="924" y="560" font-size="9" letter-spacing="2" fill="#3D3832" class="sans">COLD BREW</text>
+  <text x="1024" y="560" font-size="10" fill="#3D3832">100 g/L · room temp · 16 h</text>
+  <!-- Barcode zone -->
+  <rect x="1444" y="1042" width="140" height="76" fill="none" stroke="#3D3832" stroke-width="0.75" stroke-dasharray="3,2" opacity="0.6"/>
+  <text x="1514" y="1084" text-anchor="middle" font-size="9" fill="#3D3832">EAN-13 BARCODE</text>
+  <text x="924" y="1138" font-size="8" fill="#3D3832">[Net weight · Roaster address · Roast date · Best before · Lot #]</text>
+  <!-- Legend -->
+  <text x="60" y="1278" font-size="9" fill="#3D3832">Maillard Coffee Roasters — Ethiopia Yirgacheffe 250g Packaging Layout · 6-col grid · 3 mm bleed</text>
+  <text x="60" y="1292" font-size="8" fill="#3D3832">Generated: 2026-03-11 00:14 · Print: CMYK PDF/X-4 · Digital: RGB PNG @300 dpi</text>
+  <rect x="1492" y="1268" width="12" height="12" fill="#1A1A1A"/>
+  <text x="1507" y="1278" font-size="9" fill="#3D3832">Black</text>
+  <rect x="1554" y="1268" width="12" height="12" fill="#C8A96E"/>
+  <text x="1569" y="1278" font-size="9" fill="#3D3832">Gold</text>
+  <rect x="1616" y="1268" width="12" height="12" fill="#F5F0E8" stroke="#3D3832" stroke-width="0.5"/>
+  <text x="1631" y="1278" font-size="9" fill="#3D3832">Cream</text>
+</svg>

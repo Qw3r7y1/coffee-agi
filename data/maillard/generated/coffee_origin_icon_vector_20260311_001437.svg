@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#F5F0E8"/>
+  <!-- Maillard brand icon -->
+  <ellipse cx="100" cy="100" rx="55" ry="80" fill="none" stroke="#C8A96E" stroke-width="2"/>
+  <path d="M100 22 Q130 100 100 178" fill="none" stroke="#C8A96E" stroke-width="1.5"/>
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#3D3832" stroke-width="0.75" stroke-dasharray="4,4"/>
+  <text x="100" y="192" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="7" letter-spacing="2" fill="#3D3832">MAILLARD</text>
+</svg>

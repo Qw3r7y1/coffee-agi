@@ -1,0 +1,37 @@
+{"ts": "2026-03-16T20:40:29.241518+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-16T20:58:04.565562+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_coffee_futures_quote"}}
+{"ts": "2026-03-16T21:00:38.893696+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_coffee_futures_quote"}}
+{"ts": "2026-03-16T21:08:15.010004+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_coffee_futures_quote"}}
+{"ts": "2026-03-16T21:09:16.385863+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-16T21:11:47.991650+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-16T21:36:45.610876+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-16T21:37:35.945249+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-16T23:35:40.310490+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-16T23:36:25.766693+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-16T23:48:42.074927+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-16T23:48:55.625554+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-16T23:49:42.649419+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-16T23:50:47.106327+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-16T23:51:29.218217+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-17T13:20:16.724386+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_coffee_futures_quote"}}
+{"ts": "2026-03-17T13:45:29.049667+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_fx_rate"}}
+{"ts": "2026-03-17T13:57:07.758935+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_market_snapshot"}}
+{"ts": "2026-03-17T14:27:35.810405+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_executive_brief"}}
+{"ts": "2026-03-17T14:29:18.551962+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_coffee_futures_quote"}}
+{"ts": "2026-03-17T14:54:03.875402+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_coffee_futures_quote"}}
+{"ts": "2026-03-17T14:57:52.589034+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_coffee_futures_quote"}}
+{"ts": "2026-03-17T14:59:37.687891+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-17T15:19:02.231120+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_coffee_futures_quote"}}
+{"ts": "2026-03-17T15:21:17.413974+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_coffee_futures_quote"}}
+{"ts": "2026-03-17T15:54:22.849537+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_coffee_futures_quote"}}
+{"ts": "2026-03-17T16:05:35.210579+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "get_coffee_futures_quote"}}
+{"ts": "2026-03-17T16:14:31.975275+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-17T16:15:37.108441+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-19T14:19:05.436652+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst", "args_keys": ["query"]}}
+{"ts": "2026-03-19T15:09:36.577119+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst", "args_keys": ["query"]}}
+{"ts": "2026-03-19T19:10:23.809518+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "buying_signal"}}
+{"ts": "2026-03-19T19:11:19.485830+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "buying_signal"}}
+{"ts": "2026-03-19T19:49:36.428420+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-21T00:40:18.001682+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "buying_signal"}}
+{"ts": "2026-03-21T00:50:56.897850+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}
+{"ts": "2026-03-21T00:51:45.053704+00:00", "department": "analyst", "event": "tool_called", "payload": {"tool": "query_analyst"}}

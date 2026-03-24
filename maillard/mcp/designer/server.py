@@ -254,15 +254,33 @@ class DesignerMCP(BaseMCPServer):
                 return self.ok(result)
 
             case "generate_design_image":
-                import asyncio
-                result = await asyncio.to_thread(
-                    generators.generate_design_image,
-                    subject=arguments.get("subject", ""),
-                    prompt=arguments.get("prompt", ""),
-                    style=arguments.get("style", "minimal specialty coffee brand"),
-                    brand=arguments.get("brand", "Maillard"),
+                # Real image generation via API cascade
+                from maillard.mcp.marketing.media_pipeline import generate_image
+                result = await generate_image(
+                    prompt=arguments.get("prompt") or arguments.get("subject", "specialty coffee"),
+                    style=arguments.get("style", "cinematic"),
                 )
                 return self.ok(result)
+
+            case "generate_instagram_post":
+                from maillard.mcp.marketing.media_pipeline import create_viral_post
+                topic = arguments.get("topic", "specialty coffee")
+                result = await create_viral_post(topic)
+
+                # Flatten for clean output
+                image = result.get("image", {})
+                video = result.get("video", {})
+                content = result
+
+                return self.ok({
+                    "image": image.get("path"),
+                    "video": video.get("path"),
+                    "caption": content.get("caption", ""),
+                    "hashtags": content.get("hashtags", []),
+                    "hook": content.get("hook", ""),
+                    "image_status": image["status"],
+                    "video_status": video["status"],
+                })
 
             case "generate_product_mockup":
                 import asyncio

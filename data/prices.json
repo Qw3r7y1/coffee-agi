@@ -1,0 +1,21 @@
+{
+  "latte": 4.50,
+  "cappuccino": 4.50,
+  "flat_white": 4.50,
+  "espresso": 3.00,
+  "double_espresso": 3.50,
+  "americano": 3.50,
+  "mocha": 5.00,
+  "macchiato": 3.50,
+  "cortado": 3.50,
+  "freddo_espresso": 4.00,
+  "freddo_cappuccino": 4.50,
+  "iced_latte": 5.00,
+  "cold_brew": 4.50,
+  "filter_coffee": 3.00,
+  "pour_over": 4.00,
+  "ethiopia_bag_250g": 12.00,
+  "brazil_bag_250g": 10.00,
+  "ethiopia_bag_1kg": 40.00,
+  "brazil_bag_1kg": 35.00
+}

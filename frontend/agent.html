@@ -6,148 +6,212 @@
 <title>Maillard Agent</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #0a0a0a;
-    --surface: #141414;
-    --surface-2: #1c1c1c;
-    --surface-3: #242424;
-    --border: #2a2a2a;
-    --border-hover: #3a3a3a;
-    --gold: #b8860b;
-    --gold-light: #d4a017;
-    --gold-dim: rgba(184, 134, 11, 0.15);
-    --gold-glow: rgba(184, 134, 11, 0.08);
-    --white: #f0f0f0;
-    --muted: #777;
-    --muted-light: #999;
-    --text: #e0e0e0;
-    --green: #22c55e;
-    --green-dim: rgba(34, 197, 94, 0.12);
-    --blue: #3b82f6;
-    --blue-dim: rgba(59, 130, 246, 0.12);
-    --red: #ef4444;
-    --red-dim: rgba(239, 68, 68, 0.12);
-    --radius: 12px;
-    --radius-sm: 8px;
+    --bg: #08080a;
+    --surface: #111114;
+    --surface-2: #19191d;
+    --surface-3: #222228;
+    --surface-4: #2c2c34;
+    --border: #2a2a32;
+    --border-hover: #3a3a44;
+    --gold: #c49a2a;
+    --gold-light: #e0b84a;
+    --gold-dim: rgba(196, 154, 42, 0.12);
+    --gold-glow: rgba(196, 154, 42, 0.06);
+    --gold-border: rgba(196, 154, 42, 0.2);
+    --white: #f2f2f5;
+    --muted: #6b6b78;
+    --muted-light: #9090a0;
+    --text: #d8d8e0;
+    --green: #34d399;
+    --green-dim: rgba(52, 211, 153, 0.1);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96, 165, 250, 0.1);
+    --red: #f87171;
+    --red-dim: rgba(248, 113, 113, 0.1);
+    --orange: #fb923c;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --radius-xs: 6px;
     --font: 'Inter', -apple-system, sans-serif;
+    --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--text); }
+  html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
 
   /* ── Layout ── */
-  .app {
-    display: flex;
-    height: 100vh;
-  }
+  .app { display: flex; height: 100vh; overflow: hidden; }
 
   /* ── Sidebar ── */
   .sidebar {
-    width: 260px;
+    width: 272px;
     background: var(--surface);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    position: relative;
+    z-index: 10;
   }
 
-  .sidebar-header {
-    padding: 20px;
+  .sidebar-brand {
+    padding: 20px 20px 16px;
     border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
-  .sidebar-header h1 {
-    font-size: 1rem;
+  .sidebar-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--gold) 0%, #8b6914 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .sidebar-brand h1 {
+    font-size: 0.95rem;
     font-weight: 800;
-    color: var(--gold);
-    letter-spacing: -0.3px;
+    color: var(--white);
+    letter-spacing: -0.4px;
   }
 
-  .sidebar-header p {
-    font-size: 0.7rem;
+  .sidebar-brand p {
+    font-size: 0.68rem;
     color: var(--muted);
-    margin-top: 3px;
+    margin-top: 1px;
+    letter-spacing: 0.2px;
   }
+
+  .new-chat-btn {
+    margin: 14px 14px 6px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--muted-light);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    font-family: var(--font);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .new-chat-btn:hover {
+    border-color: var(--gold-border);
+    color: var(--gold-light);
+    background: var(--gold-glow);
+  }
+
+  .new-chat-btn svg { width: 15px; height: 15px; opacity: 0.6; }
 
   .sidebar-section {
-    padding: 16px 12px 8px;
-    font-size: 0.65rem;
+    padding: 18px 16px 8px;
+    font-size: 0.62rem;
     font-weight: 700;
     color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
   }
 
   .dept-list {
     flex: 1;
     overflow-y: auto;
-    padding: 0 8px;
+    padding: 0 10px 10px;
   }
+
+  .dept-list::-webkit-scrollbar { width: 4px; }
+  .dept-list::-webkit-scrollbar-track { background: transparent; }
+  .dept-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
   .dept-item {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 9px 12px;
+    padding: 8px 12px;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: background 0.15s;
-    margin-bottom: 2px;
+    transition: all var(--transition);
+    margin-bottom: 1px;
+    border: 1px solid transparent;
   }
 
   .dept-item:hover { background: var(--surface-2); }
-  .dept-item.active { background: var(--gold-dim); }
+  .dept-item.active {
+    background: var(--gold-dim);
+    border-color: var(--gold-border);
+  }
 
   .dept-icon {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     background: var(--surface-3);
     flex-shrink: 0;
+    transition: all var(--transition);
   }
 
   .dept-item.active .dept-icon { background: var(--gold-dim); }
 
+  .dept-info { min-width: 0; }
+
   .dept-name {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--text);
+    transition: color var(--transition);
   }
 
   .dept-item.active .dept-name { color: var(--gold-light); }
 
   .dept-sub {
-    font-size: 0.65rem;
+    font-size: 0.64rem;
     color: var(--muted);
     margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .new-chat-btn {
-    margin: 12px;
+  /* ── Sidebar nav links ── */
+  .sidebar-nav {
+    border-top: 1px solid var(--border);
     padding: 10px;
-    border: 1px dashed var(--border);
-    border-radius: var(--radius-sm);
-    background: none;
-    color: var(--muted);
-    font-size: 0.78rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-family: var(--font);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
-  .new-chat-btn:hover {
-    border-color: var(--gold);
-    color: var(--gold);
-    background: var(--gold-glow);
+  .sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    transition: all var(--transition);
   }
+
+  .sidebar-nav a:hover { background: var(--surface-2); color: var(--text); }
 
   /* ── Main ── */
   .main {
@@ -155,11 +219,12 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
+    background: var(--bg);
   }
 
   /* ── Top bar ── */
   .topbar {
-    height: 52px;
+    height: 54px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -167,25 +232,44 @@
     gap: 12px;
     flex-shrink: 0;
     background: var(--surface);
+    backdrop-filter: blur(12px);
+  }
+
+  .topbar-dept {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .topbar-dept-icon {
+    font-size: 1.1rem;
   }
 
   .topbar-title {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     font-weight: 700;
     color: var(--white);
   }
 
   .topbar-badge {
-    font-size: 0.65rem;
-    font-weight: 600;
+    font-size: 0.62rem;
+    font-weight: 700;
     padding: 3px 10px;
     border-radius: 20px;
     background: var(--gold-dim);
     color: var(--gold-light);
+    border: 1px solid var(--gold-border);
+    letter-spacing: 0.3px;
+  }
+
+  .topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
   }
 
   .topbar-status {
-    margin-left: auto;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -198,84 +282,103 @@
     height: 7px;
     border-radius: 50%;
     background: var(--green);
-    animation: pulse 2s infinite;
+    box-shadow: 0 0 8px rgba(52, 211, 153, 0.4);
+    animation: pulse 2.5s ease-in-out infinite;
   }
+  .status-dot.live { background: var(--green); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+  .status-dot.syncing { background: #60a5fa; box-shadow: 0 0 8px rgba(96,165,250,0.4); }
+  .status-dot.delayed { background: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.4); }
+  .status-dot.stale { background: #f97316; box-shadow: 0 0 8px rgba(249,115,22,0.4); }
+  .status-dot.error { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.4); }
+  .status-dot.starting { background: #9ca3af; box-shadow: none; }
 
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
 
   /* ── Messages ── */
   .messages {
     flex: 1;
     overflow-y: auto;
-    padding: 24px;
+    padding: 24px 24px 12px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
+    scroll-behavior: smooth;
   }
 
   .messages::-webkit-scrollbar { width: 6px; }
   .messages::-webkit-scrollbar-track { background: transparent; }
-  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .messages::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
+  .messages::-webkit-scrollbar-thumb:hover { background: var(--surface-4); }
 
   .msg-group {
     display: flex;
     gap: 12px;
-    max-width: 780px;
+    max-width: 820px;
     width: 100%;
     margin: 0 auto;
-    padding: 6px 0;
+    padding: 8px 0;
+    animation: fadeIn 0.25s ease;
   }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
   .msg-group.user { flex-direction: row-reverse; }
 
   .msg-avatar {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 800;
     flex-shrink: 0;
     align-self: flex-start;
     margin-top: 2px;
+    letter-spacing: -0.3px;
   }
 
-  .msg-group.bot .msg-avatar { background: var(--gold-dim); color: var(--gold-light); }
-  .msg-group.user .msg-avatar { background: var(--surface-3); color: var(--muted); }
-
-  .msg-body {
-    flex: 1;
-    min-width: 0;
+  .msg-group.bot .msg-avatar {
+    background: linear-gradient(135deg, var(--gold-dim), rgba(196, 154, 42, 0.2));
+    color: var(--gold-light);
+    border: 1px solid var(--gold-border);
   }
+
+  .msg-group.user .msg-avatar {
+    background: var(--surface-3);
+    color: var(--muted-light);
+    border: 1px solid var(--border);
+  }
+
+  .msg-body { flex: 1; min-width: 0; }
 
   .msg-meta {
     font-size: 0.65rem;
     color: var(--muted);
-    margin-bottom: 4px;
+    margin-bottom: 5px;
     display: flex;
     align-items: center;
     gap: 8px;
+    font-weight: 500;
   }
 
   .msg-group.user .msg-meta { justify-content: flex-end; }
 
   .msg-dept-tag {
-    font-size: 0.6rem;
+    font-size: 0.58rem;
     font-weight: 700;
-    padding: 2px 7px;
+    padding: 2px 8px;
     border-radius: 4px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
 
   .msg-bubble {
-    padding: 12px 16px;
+    padding: 14px 18px;
     border-radius: var(--radius);
     font-size: 0.86rem;
-    line-height: 1.65;
-    white-space: pre-wrap;
+    line-height: 1.7;
     word-break: break-word;
   }
 
@@ -287,68 +390,176 @@
   }
 
   .msg-group.user .msg-bubble {
-    background: var(--gold-dim);
-    border: 1px solid rgba(184, 134, 11, 0.25);
+    background: linear-gradient(135deg, rgba(196, 154, 42, 0.12), rgba(196, 154, 42, 0.06));
+    border: 1px solid var(--gold-border);
     border-top-right-radius: 4px;
     color: var(--white);
+    white-space: pre-wrap;
   }
 
-  /* Markdown-ish rendering */
-  .msg-bubble strong { color: var(--white); }
-  .msg-bubble code {
+  /* ── Markdown rendering ── */
+  .msg-bubble.rendered h1, .msg-bubble.rendered h2, .msg-bubble.rendered h3 {
+    color: var(--white);
+    margin: 16px 0 8px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .msg-bubble.rendered h1:first-child, .msg-bubble.rendered h2:first-child, .msg-bubble.rendered h3:first-child {
+    margin-top: 0;
+  }
+
+  .msg-bubble.rendered h1 { font-size: 1.15rem; }
+  .msg-bubble.rendered h2 { font-size: 1.05rem; }
+  .msg-bubble.rendered h3 { font-size: 0.95rem; }
+
+  .msg-bubble.rendered p {
+    margin: 8px 0;
+    line-height: 1.7;
+  }
+
+  .msg-bubble.rendered p:first-child { margin-top: 0; }
+  .msg-bubble.rendered p:last-child { margin-bottom: 0; }
+
+  .msg-bubble.rendered strong { color: var(--white); font-weight: 700; }
+
+  .msg-bubble.rendered em { font-style: italic; color: var(--muted-light); }
+
+  .msg-bubble.rendered code {
     background: var(--surface-3);
-    padding: 1px 5px;
+    padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.82em;
+    font-family: 'SF Mono', 'Consolas', 'Courier New', monospace;
+    border: 1px solid var(--border);
   }
+
+  .msg-bubble.rendered pre {
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    padding: 14px 16px;
+    margin: 10px 0;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .msg-bubble.rendered pre code {
+    background: none;
+    padding: 0;
+    border: none;
+    font-size: inherit;
+  }
+
+  .msg-bubble.rendered ul, .msg-bubble.rendered ol {
+    margin: 8px 0;
+    padding-left: 22px;
+  }
+
+  .msg-bubble.rendered li {
+    margin: 4px 0;
+    line-height: 1.6;
+  }
+
+  .msg-bubble.rendered li::marker { color: var(--muted); }
+
+  .msg-bubble.rendered blockquote {
+    border-left: 3px solid var(--gold);
+    padding: 8px 14px;
+    margin: 10px 0;
+    background: var(--gold-glow);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+    color: var(--muted-light);
+    font-style: italic;
+  }
+
+  .msg-bubble.rendered hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 14px 0;
+  }
+
+  .msg-bubble.rendered table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 10px 0;
+    font-size: 0.84rem;
+  }
+
+  .msg-bubble.rendered th, .msg-bubble.rendered td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+  }
+
+  .msg-bubble.rendered th {
+    background: var(--surface-3);
+    color: var(--white);
+    font-weight: 600;
+  }
+
+  .msg-bubble.rendered a {
+    color: var(--gold-light);
+    text-decoration: none;
+  }
+
+  .msg-bubble.rendered a:hover { text-decoration: underline; }
 
   /* ── Typing indicator ── */
   .typing-dots {
     display: inline-flex;
-    gap: 4px;
-    padding: 4px 0;
+    gap: 5px;
+    padding: 6px 0;
   }
 
   .typing-dots span {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: var(--gold);
-    animation: bounce 1s ease infinite;
+    animation: bounce 1.1s ease infinite;
   }
 
-  .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
-  .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+  .typing-dots span:nth-child(2) { animation-delay: 0.18s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.36s; }
 
-  @keyframes bounce { 0%,80%,100%{transform:scale(1);opacity:0.4} 40%{transform:scale(1.3);opacity:1} }
+  @keyframes bounce { 0%,80%,100%{transform:scale(1);opacity:0.35} 40%{transform:scale(1.3);opacity:1} }
 
   /* ── Routing indicator ── */
   .route-indicator {
-    max-width: 780px;
+    max-width: 820px;
     width: 100%;
     margin: 0 auto;
-    padding: 8px 0;
+    padding: 4px 0;
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.72rem;
+    gap: 10px;
+    font-size: 0.7rem;
     color: var(--muted);
+    animation: fadeIn 0.2s ease;
   }
 
-  .route-indicator .route-line {
+  .route-line {
     flex: 1;
     height: 1px;
-    background: var(--border);
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
   }
 
-  .route-indicator .route-tag {
-    padding: 3px 10px;
+  .route-tag {
+    padding: 3px 12px;
     border-radius: 20px;
     background: var(--surface-3);
     border: 1px solid var(--border);
     font-weight: 600;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transition);
   }
+
+  .route-tag .route-icon { font-size: 0.75rem; }
 
   /* ── Welcome ── */
   .welcome {
@@ -359,53 +570,79 @@
     justify-content: center;
     padding: 40px;
     text-align: center;
+    animation: fadeIn 0.4s ease;
   }
 
-  .welcome-icon {
-    font-size: 3rem;
-    margin-bottom: 16px;
-    opacity: 0.7;
+  .welcome-logo {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, var(--gold-dim), rgba(196, 154, 42, 0.05));
+    border: 1px solid var(--gold-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 20px;
   }
 
   .welcome h2 {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     font-weight: 800;
     color: var(--white);
     margin-bottom: 8px;
+    letter-spacing: -0.5px;
   }
 
   .welcome p {
-    font-size: 0.85rem;
+    font-size: 0.86rem;
     color: var(--muted);
-    max-width: 420px;
-    line-height: 1.5;
+    max-width: 460px;
+    line-height: 1.6;
   }
 
-  .quick-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 28px;
-    justify-content: center;
+  .quick-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 32px;
+    max-width: 540px;
+    width: 100%;
   }
 
-  .quick-action {
-    padding: 8px 16px;
+  .quick-card {
+    padding: 14px 16px;
     border: 1px solid var(--border);
-    border-radius: 20px;
+    border-radius: var(--radius);
     background: var(--surface-2);
-    color: var(--muted-light);
-    font-size: 0.78rem;
-    font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all var(--transition);
+    text-align: left;
     font-family: var(--font);
   }
 
-  .quick-action:hover {
-    border-color: var(--gold);
-    color: var(--gold-light);
+  .quick-card:hover {
+    border-color: var(--gold-border);
     background: var(--gold-glow);
+    transform: translateY(-1px);
+  }
+
+  .quick-card-icon {
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+  }
+
+  .quick-card-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 2px;
+  }
+
+  .quick-card-desc {
+    font-size: 0.7rem;
+    color: var(--muted);
+    line-height: 1.4;
   }
 
   /* ── Input area ── */
@@ -416,7 +653,7 @@
   }
 
   .input-row {
-    max-width: 780px;
+    max-width: 820px;
     margin: 0 auto;
     display: flex;
     gap: 10px;
@@ -430,11 +667,14 @@
     border-radius: var(--radius);
     display: flex;
     align-items: flex-end;
-    transition: border-color 0.15s;
+    transition: border-color var(--transition), box-shadow var(--transition);
     padding: 4px;
   }
 
-  .input-wrap:focus-within { border-color: var(--gold); }
+  .input-wrap:focus-within {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-glow);
+  }
 
   .input-wrap textarea {
     flex: 1;
@@ -443,7 +683,7 @@
     color: var(--text);
     font-family: var(--font);
     font-size: 0.88rem;
-    padding: 10px 12px;
+    padding: 10px 14px;
     resize: none;
     height: 44px;
     max-height: 160px;
@@ -453,185 +693,143 @@
 
   .input-wrap textarea::placeholder { color: var(--muted); }
 
-  .send-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
+  .mode-selector {
+    display: flex;
+    gap: 2px;
+    margin-right: 4px;
+    padding: 2px;
+    background: var(--surface-3);
+    border-radius: var(--radius-xs);
+  }
+
+  .mode-btn {
+    padding: 6px 11px;
     border: none;
-    background: var(--gold);
+    border-radius: 5px;
+    background: none;
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    font-family: var(--font);
+    white-space: nowrap;
+  }
+
+  .mode-btn:hover { color: var(--text); }
+  .mode-btn.active {
+    color: var(--gold-light);
+    background: var(--gold-dim);
+  }
+
+  .send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: linear-gradient(135deg, var(--gold), #9a7a1a);
     color: #fff;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s, opacity 0.15s;
+    transition: all var(--transition);
     flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(196, 154, 42, 0.25);
   }
 
-  .send-btn:hover { background: var(--gold-light); }
-  .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .send-btn:hover {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(196, 154, 42, 0.35);
+  }
 
+  .send-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
   .send-btn svg { width: 18px; height: 18px; }
 
   .input-hint {
-    max-width: 780px;
-    margin: 6px auto 0;
-    font-size: 0.65rem;
+    max-width: 820px;
+    margin: 7px auto 0;
+    font-size: 0.64rem;
     color: var(--muted);
     text-align: center;
+    letter-spacing: 0.2px;
   }
-
-  /* ── Mode selector ── */
-  .mode-selector {
-    display: flex;
-    gap: 4px;
-    margin-right: 4px;
-  }
-
-  .mode-btn {
-    padding: 6px 12px;
-    border: none;
-    border-radius: var(--radius-sm);
-    background: none;
-    color: var(--muted);
-    font-size: 0.72rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-family: var(--font);
-    white-space: nowrap;
-  }
-
-  .mode-btn:hover { color: var(--text); background: var(--surface-3); }
-  .mode-btn.active { color: var(--gold-light); background: var(--gold-dim); }
 
   /* ── Responsive ── */
   @media (max-width: 768px) {
     .sidebar { display: none; }
     .messages { padding: 16px; }
     .input-area { padding: 12px 16px; }
+    .quick-grid { grid-template-columns: 1fr; }
   }
 
-  /* Department colors */
-  .dept-designer     { background: #7c3aed20; color: #a78bfa; }
-  .dept-recipe       { background: #ea580c20; color: #fb923c; }
-  .dept-marketing    { background: #db277820; color: #f472b6; }
-  .dept-sales        { background: #16a34a20; color: #4ade80; }
-  .dept-analyst      { background: #2563eb20; color: #60a5fa; }
-  .dept-operations   { background: #ca8a0420; color: #fbbf24; }
-  .dept-procurement  { background: #0d948820; color: #2dd4bf; }
-  .dept-accounting   { background: #64748b20; color: #94a3b8; }
-  .dept-legal        { background: #78716c20; color: #a8a29e; }
-  .dept-hr           { background: #e11d4820; color: #fb7185; }
-  .dept-executive    { background: #b8860b20; color: #d4a017; }
-  .dept-coffee       { background: #b8860b20; color: #d4a017; }
+  /* ── Department colors ── */
+  .dept-designer     { background: rgba(124, 58, 237, 0.12); color: #a78bfa; border-color: rgba(124, 58, 237, 0.2); }
+  .dept-recipe       { background: rgba(234, 88, 12, 0.12); color: #fb923c; border-color: rgba(234, 88, 12, 0.2); }
+  .dept-marketing    { background: rgba(219, 39, 120, 0.12); color: #f472b6; border-color: rgba(219, 39, 120, 0.2); }
+  .dept-sales        { background: rgba(22, 163, 74, 0.12); color: #4ade80; border-color: rgba(22, 163, 74, 0.2); }
+  .dept-analyst      { background: rgba(37, 99, 235, 0.12); color: #60a5fa; border-color: rgba(37, 99, 235, 0.2); }
+  .dept-operations   { background: rgba(202, 138, 4, 0.12); color: #fbbf24; border-color: rgba(202, 138, 4, 0.2); }
+  .dept-procurement  { background: rgba(13, 148, 136, 0.12); color: #2dd4bf; border-color: rgba(13, 148, 136, 0.2); }
+  .dept-accounting   { background: rgba(100, 116, 139, 0.12); color: #94a3b8; border-color: rgba(100, 116, 139, 0.2); }
+  .dept-legal        { background: rgba(120, 113, 108, 0.12); color: #a8a29e; border-color: rgba(120, 113, 108, 0.2); }
+  .dept-hr           { background: rgba(225, 29, 72, 0.12); color: #fb7185; border-color: rgba(225, 29, 72, 0.2); }
+  .dept-executive    { background: var(--gold-dim); color: var(--gold-light); border-color: var(--gold-border); }
+  .dept-coffee       { background: var(--gold-dim); color: var(--gold-light); border-color: var(--gold-border); }
+
+  /* ── Error message ── */
+  .msg-error {
+    color: var(--red);
+    background: var(--red-dim);
+    border-color: rgba(248, 113, 113, 0.2);
+  }
+
+  /* ── Mobile menu toggle ── */
+  .mobile-toggle {
+    display: none;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--muted-light);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-toggle { display: flex; }
+  }
 </style>
 </head>
 <body>
 <div class="app">
 
   <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <h1>Maillard Agent</h1>
-      <p>AI-Powered Coffee Intelligence</p>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">&#9749;</div>
+      <div>
+        <h1>Maillard Agent</h1>
+        <p>Multi-Department AI</p>
+      </div>
     </div>
 
-    <button class="new-chat-btn" onclick="newChat()">+ New conversation</button>
+    <button class="new-chat-btn" onclick="newChat()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New conversation
+    </button>
 
     <div class="sidebar-section">Departments</div>
-    <div class="dept-list" id="dept-list">
-      <div class="dept-item active" data-dept="all" onclick="selectDept('all')">
-        <div class="dept-icon">*</div>
-        <div>
-          <div class="dept-name">Auto-Route</div>
-          <div class="dept-sub">AI picks the best dept</div>
-        </div>
-      </div>
-      <div class="dept-item" data-dept="coffee" onclick="selectDept('coffee')">
-        <div class="dept-icon">&#9749;</div>
-        <div>
-          <div class="dept-name">Coffee Expert</div>
-          <div class="dept-sub">SCA knowledge &amp; recipes</div>
-        </div>
-      </div>
-      <div class="dept-item" data-dept="recipe" onclick="selectDept('recipe')">
-        <div class="dept-icon">&#128221;</div>
-        <div>
-          <div class="dept-name">Recipe</div>
-          <div class="dept-sub">Drinks, food, techniques</div>
-        </div>
-      </div>
-      <div class="dept-item" data-dept="designer" onclick="selectDept('designer')">
-        <div class="dept-icon">&#127912;</div>
-        <div>
-          <div class="dept-name">Designer</div>
-          <div class="dept-sub">Brand, packaging, visuals</div>
-        </div>
-      </div>
-      <div class="dept-item" data-dept="marketing" onclick="selectDept('marketing')">
-        <div class="dept-icon">&#128227;</div>
-        <div>
-          <div class="dept-name">Marketing</div>
-          <div class="dept-sub">Campaigns, social, content</div>
-        </div>
-      </div>
-      <div class="dept-item" data-dept="sales" onclick="selectDept('sales')">
-        <div class="dept-icon">&#128200;</div>
-        <div>
-          <div class="dept-name">Sales</div>
-          <div class="dept-sub">Revenue, clients, pipeline</div>
-        </div>
-      </div>
-      <div class="dept-item" data-dept="analyst" onclick="selectDept('analyst')">
-        <div class="dept-icon">&#128202;</div>
-        <div>
-          <div class="dept-name">Analyst</div>
-          <div class="dept-sub">Data, metrics, insights</div>
-        </div>
-      </div>
-      <div class="dept-item" data-dept="operations" onclick="selectDept('operations')">
-        <div class="dept-icon">&#9881;</div>
-        <div>
-          <div class="dept-name">Operations</div>
-          <div class="dept-sub">Shifts, equipment, inventory</div>
-        </div>
-      </div>
-      <div class="dept-item" data-dept="procurement" onclick="selectDept('procurement')">
-        <div class="dept-icon">&#128230;</div>
-        <div>
-          <div class="dept-name">Procurement</div>
-          <div class="dept-sub">Suppliers, sourcing, beans</div>
-        </div>
-      </div>
-      <div class="dept-item" data-dept="accounting" onclick="selectDept('accounting')">
-        <div class="dept-icon">&#128176;</div>
-        <div>
-          <div class="dept-name">Accounting</div>
-          <div class="dept-sub">Budget, invoices, P&amp;L</div>
-        </div>
-      </div>
-      <div class="dept-item" data-dept="hr" onclick="selectDept('hr')">
-        <div class="dept-icon">&#128101;</div>
-        <div>
-          <div class="dept-name">HR</div>
-          <div class="dept-sub">Hiring, staff, training</div>
-        </div>
-      </div>
-      <div class="dept-item" data-dept="legal" onclick="selectDept('legal')">
-        <div class="dept-icon">&#9878;</div>
-        <div>
-          <div class="dept-name">Legal</div>
-          <div class="dept-sub">Contracts, compliance</div>
-        </div>
-      </div>
-      <div class="dept-item" data-dept="executive" onclick="selectDept('executive')">
-        <div class="dept-icon">&#127942;</div>
-        <div>
-          <div class="dept-name">Executive</div>
-          <div class="dept-sub">Strategy, vision, decisions</div>
-        </div>
-      </div>
+    <div class="dept-list" id="dept-list"></div>
+
+    <div class="sidebar-nav">
+      <a href="/ui">&#9749; Coffee Expert</a>
+      <a href="/intelligence">&#128202; Market Intelligence</a>
+      <a href="/dashboard">&#9881; Dashboard</a>
     </div>
   </aside>
 
@@ -639,27 +837,57 @@
   <div class="main">
     <!-- Top bar -->
     <div class="topbar">
-      <span class="topbar-title" id="topbar-title">Maillard Agent</span>
-      <span class="topbar-badge" id="topbar-badge">Auto-Route</span>
-      <div class="topbar-status">
-        <div class="status-dot"></div>
-        <span>Online</span>
+      <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('show')">&#9776;</button>
+      <div class="topbar-dept">
+        <span class="topbar-dept-icon" id="topbar-icon">&#10033;</span>
+        <span class="topbar-title" id="topbar-title">Auto-Route</span>
+      </div>
+      <span class="topbar-badge" id="topbar-badge">Smart Mode</span>
+      <div class="topbar-right">
+        <div class="topbar-status" id="sync-status" title="Square sales sync status" style="cursor:pointer" onclick="manualSync()">
+          <div class="status-dot" id="sync-dot"></div>
+          <span id="sync-label">Starting...</span>
+        </div>
       </div>
     </div>
 
     <!-- Messages / Welcome -->
     <div class="messages" id="messages">
       <div class="welcome" id="welcome">
-        <div class="welcome-icon">&#9749;</div>
+        <div class="welcome-logo">&#9749;</div>
         <h2>Maillard Agent</h2>
-        <p>Your AI-powered business assistant for Maillard Coffee Roasters. Ask anything about coffee, recipes, design, operations, or strategy.</p>
-        <div class="quick-actions">
-          <button class="quick-action" onclick="quickSend('How do I make a freddo espresso?')">Freddo espresso recipe</button>
-          <button class="quick-action" onclick="quickSend('Design a new label for Ethiopia Yirgacheffe 250g')">Design a label</button>
-          <button class="quick-action" onclick="quickSend('What are our top-selling products this month?')">Sales report</button>
-          <button class="quick-action" onclick="quickSend('Create a social media campaign for our new cold brew')">Marketing campaign</button>
-          <button class="quick-action" onclick="quickSend('What espresso ratio should I use for a 22g dose?')">Espresso ratio</button>
-          <button class="quick-action" onclick="quickSend('Draft a supplier contract for green coffee')">Legal draft</button>
+        <p>Your AI-powered business assistant. Ask anything — it auto-routes to the right department: recipes, design, marketing, sales, operations, and more.</p>
+        <div class="quick-grid">
+          <div class="quick-card" onclick="quickSend('How do I make a freddo espresso?')">
+            <div class="quick-card-icon">&#9749;</div>
+            <div class="quick-card-title">Freddo Espresso</div>
+            <div class="quick-card-desc">Get the recipe and technique</div>
+          </div>
+          <div class="quick-card" onclick="quickSend('Create a social media campaign for our new cold brew line')">
+            <div class="quick-card-icon">&#128227;</div>
+            <div class="quick-card-title">Marketing Campaign</div>
+            <div class="quick-card-desc">Social media for cold brew launch</div>
+          </div>
+          <div class="quick-card" onclick="quickSend('What are the current coffee futures prices and market outlook?')">
+            <div class="quick-card-icon">&#128202;</div>
+            <div class="quick-card-title">Market Intelligence</div>
+            <div class="quick-card-desc">Coffee futures &amp; FX rates</div>
+          </div>
+          <div class="quick-card" onclick="quickSend('Design a new label for Ethiopia Yirgacheffe 250g bag')">
+            <div class="quick-card-icon">&#127912;</div>
+            <div class="quick-card-title">Design a Label</div>
+            <div class="quick-card-desc">Packaging for single origin</div>
+          </div>
+          <div class="quick-card" onclick="quickSend('Draft a supplier contract for green coffee from Colombia')">
+            <div class="quick-card-icon">&#9878;</div>
+            <div class="quick-card-title">Legal Draft</div>
+            <div class="quick-card-desc">Supplier contract template</div>
+          </div>
+          <div class="quick-card" onclick="quickSend('Create a barista training plan for new hires')">
+            <div class="quick-card-icon">&#128101;</div>
+            <div class="quick-card-title">Barista Training</div>
+            <div class="quick-card-desc">Onboarding curriculum for staff</div>
+          </div>
         </div>
       </div>
     </div>
@@ -672,9 +900,9 @@
             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"
             oninput="autoResize(this)"></textarea>
           <div class="mode-selector">
-            <button class="mode-btn active" id="mode-smart" onclick="setMode('smart')" title="Uses Coffee Expert for knowledge questions, MCP departments for business tasks">Smart</button>
+            <button class="mode-btn active" id="mode-smart" onclick="setMode('smart')" title="Auto-routes to Coffee Expert or MCP departments">Smart</button>
             <button class="mode-btn" id="mode-mcp" onclick="setMode('mcp')" title="Always route through MCP departments">MCP</button>
-            <button class="mode-btn" id="mode-chat" onclick="setMode('chat')" title="Always use Coffee Expert chat">Chat</button>
+            <button class="mode-btn" id="mode-chat" onclick="setMode('chat')" title="Direct Coffee Expert chat">Chat</button>
           </div>
         </div>
         <button class="send-btn" id="send-btn" onclick="send()">
@@ -682,7 +910,7 @@
         </button>
       </div>
       <div class="input-hint">
-        <span id="mode-hint">Smart mode: auto-routes to Coffee Expert or MCP departments</span>
+        <span id="mode-hint">Smart mode — auto-routes to Coffee Expert or MCP departments</span>
       </div>
     </div>
   </div>
@@ -693,24 +921,41 @@
 const API = location.origin;
 let sessionId = 'agent_' + Date.now();
 let selectedDept = 'all';
-let mode = 'smart'; // smart | mcp | chat
+let mode = 'smart';
 let isTyping = false;
 
-const DEPT_META = {
-  all:          { label: 'Auto-Route',   color: 'gold' },
-  coffee:       { label: 'Coffee Expert',color: 'coffee' },
-  recipe:       { label: 'Recipe',       color: 'recipe' },
-  designer:     { label: 'Designer',     color: 'designer' },
-  marketing:    { label: 'Marketing',    color: 'marketing' },
-  sales:        { label: 'Sales',        color: 'sales' },
-  analyst:      { label: 'Analyst',      color: 'analyst' },
-  operations:   { label: 'Operations',   color: 'operations' },
-  procurement:  { label: 'Procurement',  color: 'procurement' },
-  accounting:   { label: 'Accounting',   color: 'accounting' },
-  hr:           { label: 'HR',           color: 'hr' },
-  legal:        { label: 'Legal',        color: 'legal' },
-  executive:    { label: 'Executive',    color: 'executive' },
-};
+// ── Department metadata ──
+const DEPTS = [
+  { id: 'all',         icon: '\u2731', name: 'Auto-Route',     sub: 'AI picks the best dept',  color: 'gold' },
+  { id: 'coffee',      icon: '\u2615', name: 'Coffee Expert',  sub: 'SCA knowledge & recipes', color: 'coffee' },
+  { id: 'recipe',      icon: '\uD83D\uDCDD', name: 'Recipe',        sub: 'Drinks, food, techniques', color: 'recipe' },
+  { id: 'analyst',     icon: '\uD83D\uDCCA', name: 'Analyst',       sub: 'Market data & insights',   color: 'analyst' },
+  { id: 'designer',    icon: '\uD83C\uDFA8', name: 'Designer',      sub: 'Brand & packaging',        color: 'designer' },
+  { id: 'marketing',   icon: '\uD83D\uDCE3', name: 'Marketing',     sub: 'Campaigns & content',      color: 'marketing' },
+  { id: 'sales',       icon: '\uD83D\uDCC8', name: 'Sales',         sub: 'Revenue & pipeline',       color: 'sales' },
+  { id: 'operations',  icon: '\u2699',  name: 'Operations',    sub: 'Shifts & equipment',       color: 'operations' },
+  { id: 'procurement', icon: '\uD83D\uDCE6', name: 'Procurement',   sub: 'Sourcing & suppliers',     color: 'procurement' },
+  { id: 'accounting',  icon: '\uD83D\uDCB0', name: 'Accounting',    sub: 'Budget & invoices',        color: 'accounting' },
+  { id: 'hr',          icon: '\uD83D\uDC65', name: 'HR',            sub: 'Hiring & training',        color: 'hr' },
+  { id: 'legal',       icon: '\u2696',  name: 'Legal',         sub: 'Contracts & compliance',   color: 'legal' },
+  { id: 'executive',   icon: '\uD83C\uDFC6', name: 'Executive',     sub: 'Strategy & vision',        color: 'executive' },
+];
+
+const DEPT_MAP = {};
+DEPTS.forEach(d => DEPT_MAP[d.id] = d);
+
+// ── Build sidebar ──
+function buildSidebar() {
+  const list = document.getElementById('dept-list');
+  list.innerHTML = DEPTS.map(d => `
+    <div class="dept-item${d.id === 'all' ? ' active' : ''}" data-dept="${d.id}" onclick="selectDept('${d.id}')">
+      <div class="dept-icon">${d.icon}</div>
+      <div class="dept-info">
+        <div class="dept-name">${d.name}</div>
+        <div class="dept-sub">${d.sub}</div>
+      </div>
+    </div>`).join('');
+}
 
 // ── Department selection ──
 function selectDept(dept) {
@@ -718,8 +963,9 @@ function selectDept(dept) {
   document.querySelectorAll('.dept-item').forEach(el => {
     el.classList.toggle('active', el.dataset.dept === dept);
   });
-  const meta = DEPT_META[dept] || DEPT_META.all;
-  document.getElementById('topbar-badge').textContent = meta.label;
+  const d = DEPT_MAP[dept] || DEPT_MAP.all;
+  document.getElementById('topbar-icon').textContent = d.icon;
+  document.getElementById('topbar-title').textContent = d.name;
   document.getElementById('input').focus();
 }
 
@@ -729,9 +975,9 @@ function setMode(m) {
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('mode-' + m).classList.add('active');
   const hints = {
-    smart: 'Smart mode: auto-routes to Coffee Expert or MCP departments',
-    mcp:   'MCP mode: always routes through department agents',
-    chat:  'Chat mode: direct conversation with Coffee Expert'
+    smart: 'Smart mode \u2014 auto-routes to Coffee Expert or MCP departments',
+    mcp:   'MCP mode \u2014 always routes through department agents',
+    chat:  'Chat mode \u2014 direct conversation with Coffee Expert'
   };
   document.getElementById('mode-hint').textContent = hints[m];
 }
@@ -747,19 +993,32 @@ function newChat() {
   sessionId = 'agent_' + Date.now();
   const msgs = document.getElementById('messages');
   msgs.innerHTML = '';
-  // Re-add welcome
   msgs.innerHTML = `
     <div class="welcome" id="welcome">
-      <div class="welcome-icon">&#9749;</div>
+      <div class="welcome-logo">&#9749;</div>
       <h2>Maillard Agent</h2>
-      <p>Your AI-powered business assistant for Maillard Coffee Roasters. Ask anything about coffee, recipes, design, operations, or strategy.</p>
-      <div class="quick-actions">
-        <button class="quick-action" onclick="quickSend('How do I make a freddo espresso?')">Freddo espresso recipe</button>
-        <button class="quick-action" onclick="quickSend('Design a new label for Ethiopia Yirgacheffe 250g')">Design a label</button>
-        <button class="quick-action" onclick="quickSend('What are our top-selling products this month?')">Sales report</button>
-        <button class="quick-action" onclick="quickSend('Create a social media campaign for our new cold brew')">Marketing campaign</button>
-        <button class="quick-action" onclick="quickSend('What espresso ratio should I use for a 22g dose?')">Espresso ratio</button>
-        <button class="quick-action" onclick="quickSend('Draft a supplier contract for green coffee')">Legal draft</button>
+      <p>Your AI-powered business assistant. Ask anything \u2014 it auto-routes to the right department.</p>
+      <div class="quick-grid">
+        <div class="quick-card" onclick="quickSend('How do I make a freddo espresso?')">
+          <div class="quick-card-icon">&#9749;</div>
+          <div class="quick-card-title">Freddo Espresso</div>
+          <div class="quick-card-desc">Get the recipe and technique</div>
+        </div>
+        <div class="quick-card" onclick="quickSend('Create a social media campaign for our new cold brew line')">
+          <div class="quick-card-icon">&#128227;</div>
+          <div class="quick-card-title">Marketing Campaign</div>
+          <div class="quick-card-desc">Social media for cold brew launch</div>
+        </div>
+        <div class="quick-card" onclick="quickSend('What are the current coffee futures prices?')">
+          <div class="quick-card-icon">&#128202;</div>
+          <div class="quick-card-title">Market Intelligence</div>
+          <div class="quick-card-desc">Coffee futures &amp; FX rates</div>
+        </div>
+        <div class="quick-card" onclick="quickSend('Design a new label for Ethiopia Yirgacheffe 250g bag')">
+          <div class="quick-card-icon">&#127912;</div>
+          <div class="quick-card-title">Design a Label</div>
+          <div class="quick-card-desc">Packaging for single origin</div>
+        </div>
       </div>
     </div>`;
 }
@@ -772,23 +1031,80 @@ function quickSend(text) {
 
 // ── Determine route ──
 function resolveRoute(text) {
-  // If user selected a specific dept, use it
   if (selectedDept !== 'all') {
     return selectedDept === 'coffee' ? { type: 'chat' } : { type: 'mcp', dept: selectedDept };
   }
-
-  // If mode is forced
   if (mode === 'chat') return { type: 'chat' };
-  if (mode === 'mcp') return { type: 'mcp', dept: null }; // auto-route
+  if (mode === 'mcp') return { type: 'mcp', dept: null };
 
-  // Smart mode: use /mcp/route to preview, but for speed we do client-side heuristic
-  // Coffee knowledge questions go to chat, business tasks go to MCP
   const lower = text.toLowerCase();
   const coffeePatterns = /\b(what is|explain|how does|tell me about|teach|difference between|why|sca|cupping|roast|grind|brew ratio|extraction|tds|arabica|robusta|processing method|ferment|altitude|variety|cultivar)\b/;
-  if (coffeePatterns.test(lower) && !/\b(brand|design|campaign|budget|hire|contract|supplier|invoice|schedule)\b/.test(lower)) {
+  if (coffeePatterns.test(lower) && !/\b(brand|design|campaign|budget|hire|contract|supplier|invoice|schedule|market|futures|price)\b/.test(lower)) {
     return { type: 'chat' };
   }
   return { type: 'mcp', dept: null };
+}
+
+// ── Markdown renderer ──
+function renderMarkdown(text) {
+  if (!text) return '';
+  let html = text;
+
+  // Code blocks
+  html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    return '<pre><code>' + escapeHtml(code.trim()) + '</code></pre>';
+  });
+
+  // Inline code
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // Headers
+  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+  // Bold & italic
+  html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+  // Horizontal rules
+  html = html.replace(/^---$/gm, '<hr>');
+
+  // Blockquotes
+  html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+
+  // Unordered lists
+  html = html.replace(/^[\s]*[-*] (.+)$/gm, '<li>$1</li>');
+  html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+  // Ordered lists
+  html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+  // Tables
+  html = html.replace(/^\|(.+)\|$/gm, (match, inner) => {
+    const cells = inner.split('|').map(c => c.trim());
+    if (cells.every(c => /^[-:]+$/.test(c))) return '';
+    const tag = 'td';
+    return '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
+  });
+  html = html.replace(/((?:<tr>.*<\/tr>\n?)+)/g, '<table>$1</table>');
+
+  // Links
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+  // Paragraphs — wrap remaining text lines
+  html = html.replace(/^(?!<[a-z])((?!<\/)[^\n]+)$/gm, '<p>$1</p>');
+
+  // Clean up empty paragraphs and double breaks
+  html = html.replace(/<p><\/p>/g, '');
+  html = html.replace(/\n{2,}/g, '\n');
+
+  return html;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // ── Send message ──
@@ -800,57 +1116,56 @@ async function send() {
   input.value = '';
   input.style.height = '44px';
 
-  // Remove welcome
   const welcome = document.getElementById('welcome');
   if (welcome) welcome.remove();
 
-  // Add user message
   addMessage('user', text);
 
   const route = resolveRoute(text);
   isTyping = true;
   document.getElementById('send-btn').disabled = true;
 
-  // Show routing indicator
-  const routeLabel = route.type === 'chat' ? 'Coffee Expert' : (route.dept ? DEPT_META[route.dept]?.label : 'Auto-routing...');
+  const routeLabel = route.type === 'chat' ? 'Coffee Expert' : (route.dept ? DEPT_MAP[route.dept]?.name : 'Routing...');
   const routeEl = addRouteIndicator(routeLabel);
 
-  // Show typing
   const typingEl = addTyping();
 
   try {
     let response, dept;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
 
     if (route.type === 'chat') {
-      // Direct CoffeeAgent chat
       const res = await fetch(API + '/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, session_id: sessionId })
+        body: JSON.stringify({ message: text, session_id: sessionId }),
+        signal: controller.signal
       });
+      clearTimeout(timeout);
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Chat request failed');
       response = data.response;
       dept = 'coffee';
     } else {
-      // MCP chat — dispatches + Claude summarises
       const payload = { message: text, session_id: sessionId };
       if (route.dept) payload.department = route.dept;
       const res = await fetch(API + '/mcp/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
+      clearTimeout(timeout);
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || data.error || 'Dispatch failed');
       dept = data.department || route.dept || 'executive';
       response = data.response;
     }
 
-    // Update route indicator with actual dept
-    const meta = DEPT_META[dept] || DEPT_META.executive;
-    routeEl.querySelector('.route-tag').textContent = 'Routed to ' + meta.label;
-    routeEl.querySelector('.route-tag').className = 'route-tag dept-' + meta.color;
+    const d = DEPT_MAP[dept] || DEPT_MAP.executive;
+    routeEl.querySelector('.route-tag').innerHTML = '<span class="route-icon">' + d.icon + '</span> ' + d.name;
+    routeEl.querySelector('.route-tag').className = 'route-tag dept-' + d.color;
 
     typingEl.remove();
     addMessage('bot', response, dept);
@@ -858,7 +1173,11 @@ async function send() {
   } catch (e) {
     typingEl.remove();
     routeEl.querySelector('.route-tag').textContent = 'Error';
-    addMessage('bot', 'Error: ' + e.message, 'executive');
+    routeEl.querySelector('.route-tag').classList.add('msg-error');
+    let msg = e.message;
+    if (e.name === 'AbortError') msg = 'Request timed out (30s). The server may be busy — try again.';
+    else if (msg === 'Failed to fetch') msg = 'Cannot reach the server. Make sure uvicorn is running on ' + API;
+    addMessage('bot', 'Error: ' + msg, 'executive', true);
   } finally {
     isTyping = false;
     document.getElementById('send-btn').disabled = false;
@@ -866,53 +1185,37 @@ async function send() {
   }
 }
 
-// ── Extract readable response from MCP data ──
-function extractResponse(data) {
-  // If data.data is a string, return it
-  if (typeof data.data === 'string') return data.data;
-
-  // If data.data has a response/answer/text/result field
-  if (data.data) {
-    const d = data.data;
-    if (typeof d === 'object') {
-      // Try common response fields
-      for (const key of ['response', 'answer', 'text', 'result', 'content', 'message', 'output']) {
-        if (d[key] && typeof d[key] === 'string') return d[key];
-      }
-      // Stringify as formatted JSON
-      return JSON.stringify(d, null, 2);
-    }
-    return String(d);
-  }
-
-  // Fallback: show status and department
-  if (data.error) return 'Error: ' + data.error;
-  return JSON.stringify(data, null, 2);
-}
-
 // ── DOM helpers ──
-function addMessage(role, text, dept) {
+function addMessage(role, text, dept, isError) {
   const msgs = document.getElementById('messages');
   const group = document.createElement('div');
   group.className = 'msg-group ' + role;
 
-  const deptMeta = DEPT_META[dept] || {};
+  const d = DEPT_MAP[dept] || {};
   const avatarText = role === 'user' ? 'You' : 'M';
-  const metaLabel = role === 'bot' && dept ? `<span class="msg-dept-tag dept-${deptMeta.color || 'gold'}">${deptMeta.label || dept}</span>` : '';
+  const deptTag = role === 'bot' && dept
+    ? `<span class="msg-dept-tag dept-${d.color || 'gold'}">${d.name || dept}</span>`
+    : '';
+
+  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   group.innerHTML = `
     <div class="msg-avatar">${avatarText}</div>
     <div class="msg-body">
       <div class="msg-meta">
-        ${role === 'bot' ? 'Maillard Agent' : 'You'}
-        ${metaLabel}
-        <span>${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+        ${role === 'bot' ? 'Maillard' : 'You'}
+        ${deptTag}
+        <span>${time}</span>
       </div>
-      <div class="msg-bubble"></div>
+      <div class="msg-bubble${role === 'bot' ? ' rendered' : ''}${isError ? ' msg-error' : ''}"></div>
     </div>`;
 
-  // Set text content safely (no innerHTML for user content)
-  group.querySelector('.msg-bubble').textContent = text;
+  const bubble = group.querySelector('.msg-bubble');
+  if (role === 'bot') {
+    bubble.innerHTML = renderMarkdown(text);
+  } else {
+    bubble.textContent = text;
+  }
 
   msgs.appendChild(group);
   msgs.scrollTop = msgs.scrollHeight;
@@ -927,7 +1230,7 @@ function addTyping() {
   group.innerHTML = `
     <div class="msg-avatar">M</div>
     <div class="msg-body">
-      <div class="msg-bubble">
+      <div class="msg-bubble rendered">
         <div class="typing-dots"><span></span><span></span><span></span></div>
       </div>
     </div>`;
@@ -948,7 +1251,50 @@ function addRouteIndicator(label) {
   return el;
 }
 
-// Focus input on load
+// ── Sync status polling ──
+function updateSyncStatus(data) {
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  const status = data.status || 'starting';
+  const age = data.data_age_seconds || 0;
+
+  dot.className = 'status-dot ' + status;
+
+  if (status === 'live') label.textContent = 'Live (' + age + 's)';
+  else if (status === 'syncing') label.textContent = 'Syncing...';
+  else if (status === 'delayed') label.textContent = 'Delayed (' + age + 's)';
+  else if (status === 'stale') label.textContent = 'Stale (' + age + 's)';
+  else if (status === 'error') label.textContent = 'Sync error';
+  else label.textContent = 'Starting...';
+
+  document.getElementById('sync-status').title =
+    'Square sync: ' + status +
+    (data.last_successful_sync ? '\nLast sync: ' + data.last_successful_sync.slice(11,19) + ' UTC' : '') +
+    (data.error_message ? '\nError: ' + data.error_message : '') +
+    '\nClick to refresh now';
+}
+
+async function pollSync() {
+  try {
+    const res = await fetch(API + '/mcp/sync-status');
+    if (res.ok) updateSyncStatus(await res.json());
+  } catch(e) {}
+}
+
+async function manualSync() {
+  try {
+    document.getElementById('sync-label').textContent = 'Syncing...';
+    document.getElementById('sync-dot').className = 'status-dot syncing';
+    await fetch(API + '/mcp/sync-now', { method: 'POST' });
+    setTimeout(pollSync, 3000);
+  } catch(e) {}
+}
+
+pollSync();
+setInterval(pollSync, 10000);
+
+// ── Init ──
+buildSidebar();
 document.getElementById('input').focus();
 </script>
 </body>

@@ -21,6 +21,10 @@ from core.coffee_agent import CoffeeAgent
 from ingestion.knowledge_base import KnowledgeBase
 from tests_engine.test_generator import TestGenerator
 from maillard.api import router as mcp_router
+from maillard.api_intelligence import router as intelligence_router
+from maillard.api_operations import router as operations_router
+from maillard.api_content import router as content_router
+from maillard.api_invoices import router as invoices_router
 
 # ── Ensure brand folder structure exists ──────────────────────────────────────
 for _d in ["data/maillard/logos", "data/maillard/images", "data/maillard/fonts", "data/maillard/guidelines", "data/maillard/generated"]:
@@ -38,7 +42,11 @@ cert_gen = CertificateGenerator()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Coffee AGI starting — knowledge base loaded.")
+    from maillard.models.database import init_db
+    init_db()
+    from maillard.sync_loop import start_sync
+    start_sync(interval=60)
+    logger.info("Coffee AGI starting — knowledge base loaded, intelligence DB ready, sales sync active.")
     yield
     logger.info("Coffee AGI shutting down.")
 
@@ -59,6 +67,10 @@ app.add_middleware(
 )
 
 app.include_router(mcp_router, prefix="/mcp")
+app.include_router(intelligence_router, prefix="/api")
+app.include_router(operations_router, prefix="/api")
+app.include_router(content_router, prefix="/api")
+app.include_router(invoices_router, prefix="/api")
 
 
 
@@ -126,7 +138,14 @@ class SubmitRequest(BaseModel):
 
 @app.get("/ui", tags=["UI"], response_class=HTMLResponse)
 def ui():
-    """Serve the Coffee AGI web interface."""
+    """Serve the Maillard Agent chat interface (primary UI)."""
+    with open("frontend/agent.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+
+@app.get("/ui/legacy", tags=["UI"], response_class=HTMLResponse)
+def ui_legacy():
+    """Serve the old Coffee Expert interface (no MCP/live sales)."""
     with open("frontend/index.html", "r", encoding="utf-8") as f:
         return f.read()
 
@@ -145,10 +164,31 @@ def dashboard_ui():
         return f.read()
 
 
+@app.get("/ops", tags=["UI"], response_class=HTMLResponse)
+def ops_dashboard():
+    """Serve the Operations Dashboard."""
+    with open("frontend/ops_dashboard.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+
+@app.get("/intelligence", tags=["UI"], response_class=HTMLResponse)
+def intelligence_ui():
+    """Serve the Maillard Intelligence Dashboard."""
+    with open("frontend/intelligence.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+
 @app.get("/agent", tags=["UI"], response_class=HTMLResponse)
 def agent_ui():
     """Serve the Maillard Agent chat interface."""
     with open("frontend/agent.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+
+@app.get("/content", tags=["UI"], response_class=HTMLResponse)
+def content_dashboard_ui():
+    """Serve the Viral Content Engine dashboard."""
+    with open("frontend/content_dashboard.html", "r", encoding="utf-8") as f:
         return f.read()
 
 

@@ -1,0 +1,6 @@
+invoice_id,date,customer,description,quantity,unit,amount,status
+INV-4401,2026-03-19,Parthenon Hotel,Ethiopia Yirgacheffe Roasted 1kg,10,kg,220.00,paid
+INV-4402,2026-03-19,Athena Cafe,Espresso Blend Roasted 1kg,5,kg,100.00,paid
+INV-4403,2026-03-19,Syntagma Bistro,Brazil Santos Roasted 1kg,8,kg,160.00,pending
+INV-4404,2026-03-18,Parthenon Hotel,Ethiopia Yirgacheffe Roasted 1kg,10,kg,220.00,paid
+INV-4405,2026-03-19,Plaka Deli,House Blend Roasted 250g,20,bags,190.00,paid

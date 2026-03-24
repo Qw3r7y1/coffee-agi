@@ -1,6 +1,7 @@
 """Sales MCP — Revenue, wholesale, retail, customer accounts, pricing, upsell."""
 from __future__ import annotations
 from typing import Any
+from loguru import logger
 from maillard.mcp.shared.base_server import BaseMCPServer
 from maillard.mcp.shared.claude_client import ask
 
@@ -9,11 +10,12 @@ You are the Maillard Sales Department AI.
 Responsibilities: retail and wholesale sales strategy, customer account management,
 pricing optimization, upsell/cross-sell tactics, wholesale outreach, and revenue tracking.
 
-Maillard menu pricing reference:
-- Espresso $3.25 | Americano $3.50/4.30 | Latte $4.25/5.00 | Cappuccino $4.25/5.00
-- Freddo Espresso $4.25/4.75 | Freddo Cappuccino $4.50/5.25
-- Sweet Crepes $8.95 | Savory Crepes $13.95
-Always upsell quality and craft over discounting.
+STRICT RULES:
+- For questions about today's sales, orders, or top items: use ONLY the live data provided.
+- NEVER invent sales numbers, order counts, or revenue figures.
+- NEVER fabricate product names or margin percentages.
+- If the data says status=no_live_data, say exactly: "Live sales data is not currently loaded."
+- Do NOT estimate, approximate, or guess when live data is missing.
 """
 
 TOOLS: list[dict] = [
@@ -91,6 +93,40 @@ class SalesMCP(BaseMCPServer):
                 prompt = f"Write a natural barista upsell script for a customer ordering '{arguments.get('base_order')}' to try '{arguments.get('upsell_target')}'. Context: {arguments.get('context', 'general')}. Keep it brief, genuine, and premium — never pushy."
                 return self.ok({"script": await ask(prompt, SYSTEM_PROMPT)})
             case "query_sales":
-                return self.ok({"answer": await ask(arguments.get("query", ""), SYSTEM_PROMPT)})
+                return await self._handle_query(arguments.get("query", ""))
             case _:
                 return self.err(f"Unknown tool: {name}")
+
+    async def _handle_query(self, query: str) -> dict:
+        """Return real sales intelligence. No fallback to LLM for analytics."""
+        try:
+            from maillard.mcp.sales.intelligence import generate_sales_intelligence
+            intel = generate_sales_intelligence()
+
+            # If no live data, return the block — do NOT pass to Claude
+            if intel.get("status") == "no_live_data":
+                logger.warning("[SALES] No live data — refusing to generate analytics")
+                return self.ok(intel)
+
+            lower = query.lower()
+            if any(kw in lower for kw in [
+                "top", "best", "push", "sell", "product", "what to",
+                "deprioritize", "promote", "focus", "order", "revenue",
+                "today", "sales",
+            ]):
+                return self.ok({"answer": intel["formatted"], "sales_intelligence": intel})
+
+            # Non-analytics sales question: enrich Claude with verified data
+            context = intel["formatted"]
+            answer = await ask(
+                f"{query}\n\nVerified live sales data:\n{context}",
+                SYSTEM_PROMPT,
+            )
+            return self.ok({"answer": answer, "sales_intelligence": intel})
+
+        except Exception as e:
+            logger.error(f"[SALES] Intelligence generation failed: {e}")
+            return self.ok({
+                "status": "no_live_data",
+                "message": f"Sales intelligence unavailable: {e}",
+            })

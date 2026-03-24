@@ -3,3 +3,13 @@
 {"ts": "2026-03-11T03:09:59.594811+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "how do you make a freddo cappuccino at maillard"}}}
 {"ts": "2026-03-11T20:02:14.178234+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "Create a social media campaign for our new cold brew"}}}
 {"ts": "2026-03-11T20:07:19.706546+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "freddo cappuccino"}}}
+{"ts": "2026-03-12T13:48:22.120290+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "how do we make chia parfait at maillard"}}}
+{"ts": "2026-03-16T13:28:52.251805+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "HOW WE MAKE OVERNIGHT OAT AT MAILLARD"}}}
+{"ts": "2026-03-16T13:48:22.087771+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "What espresso ratio should I use for a 22g dose?"}}}
+{"ts": "2026-03-16T20:51:09.374755+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "What coffee recipes do you have?"}}}
+{"ts": "2026-03-18T21:29:14.077405+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "parfait recipe at maillard"}}}
+{"ts": "2026-03-18T21:30:04.877169+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "overnight oat recipe belongs in parfait too"}}}
+{"ts": "2026-03-19T19:10:24.333217+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "How do I make a freddo espresso?"}}}
+{"ts": "2026-03-19T19:11:20.013525+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "How do I make a freddo espresso?"}}}
+{"ts": "2026-03-20T19:55:08.963638+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "HOW WE MAKE THE PARFAITS AT MAILLARD"}}}
+{"ts": "2026-03-20T19:55:33.806476+00:00", "department": "recipe", "event": "tool_called", "payload": {"tool": "query_recipe", "args": {"query": "WHATS A FREDDO ESPRESSO"}}}

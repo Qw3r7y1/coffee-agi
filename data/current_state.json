@@ -1,0 +1,381 @@
+{
+  "inventory": {
+    "ethiopia_yirgacheffe": {
+      "stock": 12,
+      "unit": "kg",
+      "category": "roasted_coffee",
+      "cost_per_unit": 22.0,
+      "min_stock": 5
+    },
+    "brazil_espresso": {
+      "stock": 25,
+      "unit": "kg",
+      "category": "roasted_coffee",
+      "cost_per_unit": 20.0,
+      "min_stock": 5
+    },
+    "whole_milk": {
+      "stock": 15,
+      "unit": "liters",
+      "category": "milk",
+      "cost_per_unit": 1.2,
+      "min_stock": 10
+    },
+    "oat_milk": {
+      "stock": 10,
+      "unit": "liters",
+      "category": "milk",
+      "cost_per_unit": 2.5,
+      "min_stock": 6
+    },
+    "gc_ethiopia": {
+      "stock": 30,
+      "unit": "kg",
+      "category": "green_coffee",
+      "cost_per_unit": 8.5,
+      "min_stock": 10
+    },
+    "gc_brazil": {
+      "stock": 45,
+      "unit": "kg",
+      "category": "green_coffee",
+      "cost_per_unit": 5.8,
+      "min_stock": 10
+    },
+    "cups_12oz": {
+      "stock": 200,
+      "unit": "units",
+      "category": "consumables",
+      "cost_per_unit": 0.12,
+      "min_stock": 100
+    }
+  },
+  "sales_today": {
+    "freddo_espresso": 29,
+    "latte": 8,
+    "freddo_cappuccino": 4,
+    "homemade_spinach_pie": 4,
+    "mocha": 4,
+    "americano": 3,
+    "cappuccino": 3,
+    "cheese_pie": 3,
+    "frape": 3,
+    "koulouri_cheese": 3,
+    "matcha": 3,
+    "muffin": 3,
+    "peinirli": 3,
+    "apple_turnover": 2,
+    "banana_chocolate_croissant": 2,
+    "bougatsa": 2,
+    "cortado": 2,
+    "filter_coffee": 2,
+    "ham_and_cheese_croissant": 2,
+    "bacon_egg_and_cheese_croissant": 1,
+    "butter_croissant": 1,
+    "chocolate_chip_cookie": 1,
+    "coffee_bags": 1,
+    "cold_brew": 1,
+    "crepe": 1,
+    "espresso": 1,
+    "fruit_danish": 1,
+    "japanese_style_iced_coffee": 1,
+    "macchiato": 1,
+    "nutella": 1,
+    "oj": 1,
+    "overnight_oats": 1,
+    "peanut_butter_cookie": 1,
+    "prosciutto_croissant": 1,
+    "theoni": 1
+  },
+  "sales_amounts": {
+    "freddo_espresso": 14368,
+    "latte": 4955,
+    "freddo_cappuccino": 2048,
+    "homemade_spinach_pie": 2646,
+    "mocha": 2727,
+    "americano": 1389,
+    "cappuccino": 1726,
+    "cheese_pie": 1982,
+    "frape": 1617,
+    "koulouri_cheese": 1982,
+    "matcha": 2090,
+    "muffin": 1600,
+    "peinirli": 2423,
+    "apple_turnover": 1034,
+    "banana_chocolate_croissant": 1144,
+    "bougatsa": 1470,
+    "cortado": 1034,
+    "filter_coffee": 762,
+    "ham_and_cheese_croissant": 1557,
+    "bacon_egg_and_cheese_croissant": 898,
+    "butter_croissant": 490,
+    "chocolate_chip_cookie": 463,
+    "coffee_bags": 1600,
+    "cold_brew": 572,
+    "crepe": 1628,
+    "espresso": 430,
+    "fruit_danish": 735,
+    "japanese_style_iced_coffee": 539,
+    "macchiato": 463,
+    "nutella": 1192,
+    "oj": 789,
+    "overnight_oats": 648,
+    "peanut_butter_cookie": 462,
+    "prosciutto_croissant": 1007,
+    "theoni": 245
+  },
+  "top_items": [
+    {
+      "name": "freddo_espresso",
+      "display": "Freddo Espresso",
+      "category": "drink",
+      "qty": 29,
+      "revenue_cents": 14368
+    },
+    {
+      "name": "latte",
+      "display": "Latte",
+      "category": "drink",
+      "qty": 8,
+      "revenue_cents": 4955
+    },
+    {
+      "name": "freddo_cappuccino",
+      "display": "Freddo Cappuccino",
+      "category": "drink",
+      "qty": 4,
+      "revenue_cents": 2048
+    },
+    {
+      "name": "homemade_spinach_pie",
+      "display": "Homemade Spinach Pie",
+      "category": "other",
+      "qty": 4,
+      "revenue_cents": 2646
+    },
+    {
+      "name": "mocha",
+      "display": "Mocha",
+      "category": "drink",
+      "qty": 4,
+      "revenue_cents": 2727
+    },
+    {
+      "name": "americano",
+      "display": "Americano",
+      "category": "drink",
+      "qty": 3,
+      "revenue_cents": 1389
+    },
+    {
+      "name": "cappuccino",
+      "display": "Cappuccino",
+      "category": "drink",
+      "qty": 3,
+      "revenue_cents": 1726
+    },
+    {
+      "name": "cheese_pie",
+      "display": "Cheese Pie",
+      "category": "other",
+      "qty": 3,
+      "revenue_cents": 1982
+    },
+    {
+      "name": "frape",
+      "display": "Frape 24oz",
+      "category": "other",
+      "qty": 3,
+      "revenue_cents": 1617
+    },
+    {
+      "name": "koulouri_cheese",
+      "display": "Koulouri Cheese",
+      "category": "other",
+      "qty": 3,
+      "revenue_cents": 1982
+    },
+    {
+      "name": "matcha",
+      "display": "Matcha",
+      "category": "other",
+      "qty": 3,
+      "revenue_cents": 2090
+    },
+    {
+      "name": "muffin",
+      "display": "Muffin",
+      "category": "other",
+      "qty": 3,
+      "revenue_cents": 1600
+    },
+    {
+      "name": "peinirli",
+      "display": "Peinirli",
+      "category": "other",
+      "qty": 3,
+      "revenue_cents": 2423
+    },
+    {
+      "name": "apple_turnover",
+      "display": "Apple turnover",
+      "category": "other",
+      "qty": 2,
+      "revenue_cents": 1034
+    },
+    {
+      "name": "banana_chocolate_croissant",
+      "display": "Banana Chocolate Croissant",
+      "category": "other",
+      "qty": 2,
+      "revenue_cents": 1144
+    },
+    {
+      "name": "bougatsa",
+      "display": "Bougatsa",
+      "category": "other",
+      "qty": 2,
+      "revenue_cents": 1470
+    },
+    {
+      "name": "cortado",
+      "display": "Cortado",
+      "category": "drink",
+      "qty": 2,
+      "revenue_cents": 1034
+    },
+    {
+      "name": "filter_coffee",
+      "display": "Filter Coffee",
+      "category": "drink",
+      "qty": 2,
+      "revenue_cents": 762
+    },
+    {
+      "name": "ham_and_cheese_croissant",
+      "display": "Ham and cheese croissant (tomato & mayo)",
+      "category": "other",
+      "qty": 2,
+      "revenue_cents": 1557
+    },
+    {
+      "name": "bacon_egg_and_cheese_croissant",
+      "display": "Bacon egg and cheese croissant",
+      "category": "other",
+      "qty": 1,
+      "revenue_cents": 898
+    },
+    {
+      "name": "butter_croissant",
+      "display": "Butter croissant",
+      "category": "other",
+      "qty": 1,
+      "revenue_cents": 490
+    },
+    {
+      "name": "chocolate_chip_cookie",
+      "display": "Chocolate chip cookie",
+      "category": "other",
+      "qty": 1,
+      "revenue_cents": 463
+    },
+    {
+      "name": "coffee_bags",
+      "display": "COFFEE 12oz bags",
+      "category": "other",
+      "qty": 1,
+      "revenue_cents": 1600
+    },
+    {
+      "name": "cold_brew",
+      "display": "Cold Brew",
+      "category": "drink",
+      "qty": 1,
+      "revenue_cents": 572
+    },
+    {
+      "name": "crepe",
+      "display": "Crepe",
+      "category": "food",
+      "qty": 1,
+      "revenue_cents": 1628
+    },
+    {
+      "name": "espresso",
+      "display": "Espresso",
+      "category": "drink",
+      "qty": 1,
+      "revenue_cents": 430
+    },
+    {
+      "name": "fruit_danish",
+      "display": "Fruit danish",
+      "category": "other",
+      "qty": 1,
+      "revenue_cents": 735
+    },
+    {
+      "name": "japanese_style_iced_coffee",
+      "display": "Japanese style Iced Coffee",
+      "category": "other",
+      "qty": 1,
+      "revenue_cents": 539
+    },
+    {
+      "name": "macchiato",
+      "display": "Macchiato",
+      "category": "drink",
+      "qty": 1,
+      "revenue_cents": 463
+    },
+    {
+      "name": "nutella",
+      "display": "Nutella",
+      "category": "other",
+      "qty": 1,
+      "revenue_cents": 1192
+    },
+    {
+      "name": "oj",
+      "display": "OJ",
+      "category": "other",
+      "qty": 1,
+      "revenue_cents": 789
+    },
+    {
+      "name": "overnight_oats",
+      "display": "Overnight Oats",
+      "category": "food",
+      "qty": 1,
+      "revenue_cents": 648
+    },
+    {
+      "name": "peanut_butter_cookie",
+      "display": "Peanut butter cookie",
+      "category": "other",
+      "qty": 1,
+      "revenue_cents": 462
+    },
+    {
+      "name": "prosciutto_croissant",
+      "display": "Prosciutto croissant (manouri, arugula & balsamic dressing)",
+      "category": "other",
+      "qty": 1,
+      "revenue_cents": 1007
+    },
+    {
+      "name": "theoni",
+      "display": "theoni",
+      "category": "other",
+      "qty": 1,
+      "revenue_cents": 245
+    }
+  ],
+  "raw_order_count": 63,
+  "business_date": "2026-03-24",
+  "location_id": "LNZ6BS56ANE9F",
+  "source": "sqlite",
+  "snapshot_generated_at": "2026-03-24T21:56:39.239705+00:00",
+  "last_square_sync_at": "2026-03-24T21:56:39.224460+00:00",
+  "freshness_seconds": 0
+}

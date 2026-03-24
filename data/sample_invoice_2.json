@@ -1,0 +1,50 @@
+{
+  "vendor": "Metro Dairy & Supplies",
+  "invoice_date": "2026-03-21",
+  "invoice_number": "MDS-88921",
+  "line_items": [
+    {
+      "name": "Whole Milk 1gal",
+      "quantity": 12,
+      "unit": "gallon",
+      "unit_price": 4.20
+    },
+    {
+      "name": "Oat Milk Barista Edition 6x1L case",
+      "quantity": 3,
+      "unit": "cases",
+      "unit_price": 28.50
+    },
+    {
+      "name": "Vanilla Syrup 750ml",
+      "quantity": 6,
+      "unit": "ea",
+      "unit_price": 12.90
+    },
+    {
+      "name": "Caramel Syrup 750ml",
+      "quantity": 4,
+      "unit": "ea",
+      "unit_price": 12.90
+    },
+    {
+      "name": "White Sugar 5lb bag",
+      "quantity": 3,
+      "unit": "bag",
+      "unit_price": 4.50
+    },
+    {
+      "name": "12oz Paper Cups w/ Sleeve 12x25ct case",
+      "quantity": 2,
+      "unit": "case",
+      "unit_price": 42.00
+    },
+    {
+      "name": "Espresso Machine Descaler Tablets",
+      "quantity": 1,
+      "unit": "box",
+      "unit_price": 18.95
+    }
+  ],
+  "total": 347.75
+}

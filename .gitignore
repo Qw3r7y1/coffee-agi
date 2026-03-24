@@ -9,3 +9,6 @@ data/chroma/
 .env.backup
 .env.backup
 .claude/
+
+data/sales.db
+data/.minute_sync.lock

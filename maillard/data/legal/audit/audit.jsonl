@@ -1,0 +1,3 @@
+{"ts": "2026-03-19T03:34:30.389883+00:00", "department": "legal", "event": "tool_called", "payload": {"tool": "query_legal"}}
+{"ts": "2026-03-19T19:10:23.808518+00:00", "department": "legal", "event": "tool_called", "payload": {"tool": "query_legal"}}
+{"ts": "2026-03-19T19:11:19.483832+00:00", "department": "legal", "event": "tool_called", "payload": {"tool": "query_legal"}}

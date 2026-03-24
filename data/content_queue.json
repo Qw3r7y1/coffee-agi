@@ -1,0 +1,103 @@
+[
+  {
+    "id": "vc-001",
+    "type": "reel",
+    "hook": "behind_the_scenes",
+    "caption": "Watch how we dial in our single-origin Ethiopian every morning ☕",
+    "platform": "instagram",
+    "scheduled_time": "2026-03-23T08:30:00",
+    "status": "posted",
+    "posted_at": "2026-03-23T08:31:12"
+  },
+  {
+    "id": "vc-002",
+    "type": "tiktok",
+    "hook": "educational",
+    "caption": "Why does your espresso taste sour? Here's the fix in 15 seconds",
+    "platform": "tiktok",
+    "scheduled_time": "2026-03-23T10:00:00",
+    "status": "posted",
+    "posted_at": "2026-03-23T10:01:05"
+  },
+  {
+    "id": "vc-003",
+    "type": "reel",
+    "hook": "transformation",
+    "caption": "From green beans to golden crema — the Maillard journey",
+    "platform": "instagram",
+    "scheduled_time": "2026-03-23T14:00:00",
+    "status": "pending",
+    "posted_at": null
+  },
+  {
+    "id": "vc-004",
+    "type": "story",
+    "hook": "question",
+    "caption": "What's your go-to order? Drop it below 👇",
+    "platform": "instagram",
+    "scheduled_time": "2026-03-23T17:00:00",
+    "status": "pending",
+    "posted_at": null
+  },
+  {
+    "id": "vc-005",
+    "type": "tiktok",
+    "hook": "trend_riding",
+    "caption": "POV: you finally try specialty coffee for the first time",
+    "platform": "tiktok",
+    "scheduled_time": "2026-03-22T12:00:00",
+    "status": "posted",
+    "posted_at": "2026-03-22T12:00:45"
+  },
+  {
+    "id": "vc-006",
+    "type": "reel",
+    "hook": "behind_the_scenes",
+    "caption": "Our barista's morning calibration routine — no shortcuts",
+    "platform": "instagram",
+    "scheduled_time": "2026-03-22T09:00:00",
+    "status": "posted",
+    "posted_at": "2026-03-22T09:01:30"
+  },
+  {
+    "id": "vc-007",
+    "type": "carousel",
+    "hook": "educational",
+    "caption": "5 signs your coffee beans are stale (and what to do about it)",
+    "platform": "instagram",
+    "scheduled_time": "2026-03-21T11:00:00",
+    "status": "posted",
+    "posted_at": "2026-03-21T11:02:00"
+  },
+  {
+    "id": "vc-008",
+    "type": "tiktok",
+    "hook": "controversial",
+    "caption": "Oat milk is overrated. Fight me. ☕🥊",
+    "platform": "tiktok",
+    "scheduled_time": "2026-03-21T15:00:00",
+    "status": "failed",
+    "posted_at": null,
+    "error": "API rate limit exceeded"
+  },
+  {
+    "id": "vc-009",
+    "type": "reel",
+    "hook": "transformation",
+    "caption": "Latte art speedrun — from pour to perfect rosetta in 8 seconds",
+    "platform": "instagram",
+    "scheduled_time": "2026-03-24T08:00:00",
+    "status": "pending",
+    "posted_at": null
+  },
+  {
+    "id": "vc-010",
+    "type": "story",
+    "hook": "behind_the_scenes",
+    "caption": "Sneak peek at our new cold brew process 🧊",
+    "platform": "instagram",
+    "scheduled_time": "2026-03-24T16:00:00",
+    "status": "pending",
+    "posted_at": null
+  }
+]

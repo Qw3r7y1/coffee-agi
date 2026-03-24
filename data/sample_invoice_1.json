@@ -1,0 +1,32 @@
+{
+  "vendor": "Kafea Terra Green Imports",
+  "invoice_date": "2026-03-20",
+  "invoice_number": "KT-2026-0412",
+  "line_items": [
+    {
+      "name": "Ethiopia Yirgacheffe Grade 1 Green 60kg GrainPro",
+      "quantity": 2,
+      "unit": "bags",
+      "unit_price": 485.00
+    },
+    {
+      "name": "Colombia Huila Supremo Green 69kg jute",
+      "quantity": 1,
+      "unit": "bag",
+      "unit_price": 410.00
+    },
+    {
+      "name": "Brazil Santos Natural Green 60kg",
+      "quantity": 2,
+      "unit": "bags",
+      "unit_price": 340.00
+    },
+    {
+      "name": "Guatemala Antigua SHB Green 69kg GrainPro",
+      "quantity": 1,
+      "unit": "bag",
+      "unit_price": 455.00
+    }
+  ],
+  "total": 2515.00
+}

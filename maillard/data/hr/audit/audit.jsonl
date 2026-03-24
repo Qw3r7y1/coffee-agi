@@ -1,0 +1,3 @@
+{"ts": "2026-03-19T19:10:24.324235+00:00", "department": "hr", "event": "tool_called", "payload": {"tool": "query_hr"}}
+{"ts": "2026-03-19T19:11:20.009527+00:00", "department": "hr", "event": "tool_called", "payload": {"tool": "query_hr"}}
+{"ts": "2026-03-21T14:28:13.560326+00:00", "department": "hr", "event": "tool_called", "payload": {"tool": "query_hr"}}

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Maillard Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface-2: #1c1c1c;
+    --surface-3: #242424;
+    --border: #2a2a2a;
+    --gold: #b8860b;
+    --gold-light: #d4a017;
+    --gold-dim: rgba(184, 134, 11, 0.15);
+    --white: #f0f0f0;
+    --muted: #777;
+    --text: #e0e0e0;
+    --green: #22c55e;
+    --green-dim: rgba(34, 197, 94, 0.12);
+    --red: #ef4444;
+    --red-dim: rgba(239, 68, 68, 0.12);
+    --blue: #3b82f6;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --font: 'Inter', -apple-system, sans-serif;
+  }
+
+  html, body { min-height: 100vh; font-family: var(--font); background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; }
+
+  .shell { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+  /* Header */
+  header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  header h1 { font-size: 1.1rem; font-weight: 800; color: var(--gold); letter-spacing: -0.3px; }
+  header .subtitle { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+  .refresh-btn {
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--gold-light);
+    padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.75rem;
+    font-weight: 600; transition: all 0.2s;
+  }
+  .refresh-btn:hover { background: var(--gold-dim); border-color: var(--gold); }
+  .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin-bottom: 24px; }
+
+  /* Cards */
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; position: relative; overflow: hidden;
+  }
+  .card h2 { font-size: 0.75rem; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .card .loading { color: var(--muted); font-size: 0.75rem; }
+
+  /* Metric rows */
+  .metric { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .metric:last-child { border-bottom: none; }
+  .metric-label { color: var(--muted); font-size: 0.75rem; }
+  .metric-value { font-weight: 600; font-size: 0.85rem; }
+  .metric-value.up { color: var(--green); }
+  .metric-value.down { color: var(--red); }
+
+  /* Big price */
+  .big-price { font-size: 2rem; font-weight: 800; color: var(--white); margin: 8px 0; }
+  .big-label { font-size: 0.7rem; color: var(--muted); }
+  .change-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+  }
+  .change-badge.up { background: var(--green-dim); color: var(--green); }
+  .change-badge.down { background: var(--red-dim); color: var(--red); }
+
+  /* Brief card */
+  .brief-card { grid-column: 1 / -1; }
+  .brief-content { font-size: 0.8rem; line-height: 1.7; white-space: pre-wrap; }
+  .brief-content h2, .brief-content h3 { color: var(--gold-light); margin: 12px 0 6px; font-size: 0.85rem; }
+  .brief-content strong { color: var(--white); }
+  .brief-content ul { padding-left: 16px; }
+
+  /* Timestamp */
+  .timestamp { font-size: 0.65rem; color: var(--muted); margin-top: 12px; text-align: right; }
+
+  /* Status */
+  .status-bar { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; font-size: 0.7rem; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+  .status-dot.live { background: var(--green); }
+  .status-dot.offline { background: var(--red); }
+
+  /* Navigation */
+  .nav-links { display: flex; gap: 12px; margin-bottom: 16px; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.7rem; font-weight: 600; padding: 4px 8px; border-radius: 4px; transition: all 0.2s; }
+  .nav-links a:hover { color: var(--gold-light); background: var(--gold-dim); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div>
+      <h1>Maillard Intelligence</h1>
+      <div class="subtitle">Market &amp; Operations Intelligence Dashboard</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="refresh-btn" id="refreshBtn" onclick="refreshAll()">Refresh All</button>
+    </div>
+  </header>
+
+  <div class="nav-links">
+    <a href="/agent">Agent Chat</a>
+    <a href="/dashboard">Control Panel</a>
+    <a href="/ui">Coffee AGI</a>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="status-dot" id="statusDot"></span> <span id="statusText">Connecting...</span></span>
+    <span id="lastRefresh" style="margin-left:auto;"></span>
+  </div>
+
+  <div class="grid">
+    <!-- Coffee Futures Card -->
+    <div class="card" id="futuresCard">
+      <h2>Coffee Futures (ICE Arabica KC)</h2>
+      <div class="loading" id="futuresLoading">Loading live data...</div>
+      <div id="futuresContent" style="display:none;">
+        <div class="big-label">Current Price</div>
+        <div class="big-price" id="futuresPrice">—</div>
+        <span class="change-badge" id="futuresChange">—</span>
+        <div style="margin-top:16px;">
+          <div class="metric"><span class="metric-label">Trend</span><span class="metric-value" id="futuresTrend">—</span></div>
+          <div class="metric"><span class="metric-label">Day Range</span><span class="metric-value" id="futuresRange">—</span></div>
+          <div class="metric"><span class="metric-label">Previous Close</span><span class="metric-value" id="futuresPrev">—</span></div>
+        </div>
+        <div class="timestamp" id="futuresTs"></div>
+      </div>
+    </div>
+
+    <!-- FX Rates Card -->
+    <div class="card" id="fxCard">
+      <h2>FX Rates</h2>
+      <div class="loading" id="fxLoading">Loading FX data...</div>
+      <div id="fxContent" style="display:none;"></div>
+      <div class="timestamp" id="fxTs"></div>
+    </div>
+
+    <!-- Green Cost Pressure Card -->
+    <div class="card" id="costCard">
+      <h2>Green Coffee Cost Pressure</h2>
+      <div class="loading" id="costLoading">Calculating...</div>
+      <div id="costContent" style="display:none;"></div>
+    </div>
+
+    <!-- Margin Pressure Card -->
+    <div class="card" id="marginCard">
+      <h2>Margin Analysis</h2>
+      <div class="loading" id="marginLoading">Calculating...</div>
+      <div id="marginContent" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Executive Brief -->
+  <div class="card brief-card" id="briefCard">
+    <h2>Executive Intelligence Brief</h2>
+    <div class="loading" id="briefLoading">Generating executive brief... (this may take a moment)</div>
+    <div class="brief-content" id="briefContent" style="display:none;"></div>
+    <div class="timestamp" id="briefTs"></div>
+  </div>
+</div>
+
+<script>
+const API = '/api/intelligence';
+
+async function fetchJSON(path) {
+  const resp = await fetch(API + path);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return resp.json();
+}
+
+function fmt(n, dec = 2) { return n != null ? Number(n).toFixed(dec) : '—'; }
+function ts(iso) { return iso ? new Date(iso).toLocaleString() : ''; }
+function changeCls(pct) { return pct >= 0 ? 'up' : 'down'; }
+function changeSign(pct) { return pct >= 0 ? '+' : ''; }
+
+async function loadFutures() {
+  try {
+    const data = await fetchJSON('/market-snapshot');
+    const c = data.coffee_futures;
+    if (c && !c.error) {
+      document.getElementById('futuresPrice').textContent = '$' + fmt(c.price) + ' /lb';
+      const badge = document.getElementById('futuresChange');
+      badge.textContent = changeSign(c.change_percent) + fmt(c.change_percent, 1) + '%';
+      badge.className = 'change-badge ' + changeCls(c.change_percent);
+      document.getElementById('futuresTrend').textContent = data.trend || '—';
+      document.getElementById('futuresRange').textContent = (c.low ? fmt(c.low) + ' — ' + fmt(c.high) : '—');
+      document.getElementById('futuresPrev').textContent = c.previous_close ? '$' + fmt(c.previous_close) : '—';
+      document.getElementById('futuresTs').textContent = 'Quote: ' + ts(c.timestamp);
+      document.getElementById('futuresLoading').style.display = 'none';
+      document.getElementById('futuresContent').style.display = 'block';
+      setStatus(true);
+    } else {
+      document.getElementById('futuresLoading').textContent = c?.error || 'Data unavailable';
+      setStatus(false);
+    }
+
+    // FX
+    const fx = data.fx_rates || {};
+    const pairs = Object.entries(fx);
+    if (pairs.length) {
+      let html = '';
+      for (const [pair, info] of pairs) {
+        const cls = changeCls(info.change_percent || 0);
+        html += `<div class="metric">
+          <span class="metric-label">${pair}</span>
+          <span class="metric-value ${cls}">${fmt(info.rate, 4)} <small>(${changeSign(info.change_percent)}${fmt(info.change_percent, 1)}%)</small></span>
+        </div>`;
+      }
+      document.getElementById('fxContent').innerHTML = html;
+      document.getElementById('fxLoading').style.display = 'none';
+      document.getElementById('fxContent').style.display = 'block';
+      document.getElementById('fxTs').textContent = ts(pairs[0]?.[1]?.timestamp);
+    }
+  } catch (e) {
+    document.getElementById('futuresLoading').textContent = 'Failed to load market data';
+    document.getElementById('fxLoading').textContent = 'Failed to load FX data';
+    setStatus(false);
+  }
+}
+
+async function loadCostPressure() {
+  try {
+    const data = await fetchJSON('/green-cost-pressure');
+    if (data.error) { document.getElementById('costLoading').textContent = data.error; return; }
+    const cls = (data.cost_pressure_percent || 0) > 0 ? 'up' : 'down';
+    const html = `
+      <div class="metric"><span class="metric-label">Futures</span><span class="metric-value">${fmt(data.futures_price_cents_lb)} c/lb</span></div>
+      <div class="metric"><span class="metric-label">Est. Green (USD/kg)</span><span class="metric-value">$${fmt(data.estimated_green_usd_kg)}</span></div>
+      <div class="metric"><span class="metric-label">Est. Green (EUR/kg)</span><span class="metric-value">&euro;${fmt(data.estimated_green_eur_kg)}</span></div>
+      <div class="metric"><span class="metric-label">Reference Cost</span><span class="metric-value">&euro;${fmt(data.reference_cost_eur_kg)}</span></div>
+      <div class="metric"><span class="metric-label">Cost Pressure</span><span class="metric-value ${cls}">${changeSign(data.cost_pressure_percent)}${fmt(data.cost_pressure_percent, 1)}%</span></div>
+    `;
+    document.getElementById('costContent').innerHTML = html;
+    document.getElementById('costLoading').style.display = 'none';
+    document.getElementById('costContent').style.display = 'block';
+  } catch (e) {
+    document.getElementById('costLoading').textContent = 'Failed to load cost data';
+  }
+}
+
+async function loadMarginPressure() {
+  try {
+    const data = await fetchJSON('/margin-pressure');
+    if (data.error) { document.getElementById('marginLoading').textContent = data.error; return; }
+    const cogsCls = data.actual_cogs_percent > data.target_cogs_percent ? 'down' : 'up';
+    const html = `
+      <div class="metric"><span class="metric-label">Roasted Cost</span><span class="metric-value">&euro;${fmt(data.roasted_cost_eur_kg)}/kg</span></div>
+      <div class="metric"><span class="metric-label">Cost/Espresso Shot</span><span class="metric-value">&euro;${fmt(data.cost_per_espresso_shot, 3)}</span></div>
+      <div class="metric"><span class="metric-label">Retail Margin</span><span class="metric-value">${fmt(data.retail_margin_percent, 1)}%</span></div>
+      <div class="metric"><span class="metric-label">Wholesale Margin</span><span class="metric-value">${fmt(data.wholesale_margin_percent, 1)}%</span></div>
+      <div class="metric"><span class="metric-label">COGS (target ${data.target_cogs_percent}%)</span><span class="metric-value ${cogsCls}">${fmt(data.actual_cogs_percent, 1)}%</span></div>
+    `;
+    document.getElementById('marginContent').innerHTML = html;
+    document.getElementById('marginLoading').style.display = 'none';
+    document.getElementById('marginContent').style.display = 'block';
+  } catch (e) {
+    document.getElementById('marginLoading').textContent = 'Failed to load margin data';
+  }
+}
+
+async function loadBrief() {
+  try {
+    const data = await fetchJSON('/executive-brief');
+    if (data.error) { document.getElementById('briefLoading').textContent = data.error; return; }
+    // Simple markdown-ish rendering
+    let html = (data.brief || '').replace(/## (.+)/g, '<h2>$1</h2>').replace(/### (.+)/g, '<h3>$1</h3>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n- /g, '\n• ');
+    document.getElementById('briefContent').innerHTML = html;
+    document.getElementById('briefLoading').style.display = 'none';
+    document.getElementById('briefContent').style.display = 'block';
+    document.getElementById('briefTs').textContent = 'Generated: ' + ts(data.generated_at);
+  } catch (e) {
+    document.getElementById('briefLoading').textContent = 'Failed to generate brief';
+  }
+}
+
+function setStatus(live) {
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  dot.className = 'status-dot ' + (live ? 'live' : 'offline');
+  txt.textContent = live ? 'Live' : 'Offline';
+  document.getElementById('lastRefresh').textContent = 'Last refresh: ' + new Date().toLocaleTimeString();
+}
+
+async function refreshAll() {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  btn.textContent = 'Refreshing...';
+
+  // Reset loading states
+  ['futuresLoading','fxLoading','costLoading','marginLoading','briefLoading'].forEach(id => {
+    document.getElementById(id).style.display = 'block';
+    document.getElementById(id).textContent = 'Loading...';
+  });
+  ['futuresContent','fxContent','costContent','marginContent','briefContent'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+
+  // Load market data first, then dependent cards, then brief
+  await loadFutures();
+  await Promise.all([loadCostPressure(), loadMarginPressure()]);
+  await loadBrief();
+
+  btn.disabled = false;
+  btn.textContent = 'Refresh All';
+}
+
+// Initial load
+refreshAll();
+</script>
+</body>
+</html>

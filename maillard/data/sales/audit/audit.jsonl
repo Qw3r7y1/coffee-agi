@@ -1,0 +1,9 @@
+{"ts": "2026-03-12T13:48:56.283075+00:00", "department": "sales", "event": "tool_called", "payload": {"tool": "query_sales"}}
+{"ts": "2026-03-19T18:22:11.892746+00:00", "department": "sales", "event": "tool_called", "payload": {"tool": "query_sales"}}
+{"ts": "2026-03-19T19:10:24.331217+00:00", "department": "sales", "event": "tool_called", "payload": {"tool": "query_sales"}}
+{"ts": "2026-03-19T19:11:20.011526+00:00", "department": "sales", "event": "tool_called", "payload": {"tool": "query_sales"}}
+{"ts": "2026-03-19T19:20:26.591894+00:00", "department": "sales", "event": "tool_called", "payload": {"tool": "query_sales"}}
+{"ts": "2026-03-19T20:32:13.192437+00:00", "department": "sales", "event": "tool_called", "payload": {"tool": "query_sales"}}
+{"ts": "2026-03-19T20:32:13.196434+00:00", "department": "sales", "event": "tool_called", "payload": {"tool": "query_sales"}}
+{"ts": "2026-03-20T19:54:42.877045+00:00", "department": "sales", "event": "tool_called", "payload": {"tool": "query_sales"}}
+{"ts": "2026-03-21T14:32:12.497406+00:00", "department": "sales", "event": "tool_called", "payload": {"tool": "query_sales"}}

@@ -59,4 +59,5 @@ async def ask(
         return response.content[0].text
     except Exception as e:
         logger.error(f"Claude call failed: {e}")
-        raise
+        # Return a useful fallback instead of crashing the department
+        return f"[Department response unavailable: AI service error. Query was: {prompt[:100]}]"

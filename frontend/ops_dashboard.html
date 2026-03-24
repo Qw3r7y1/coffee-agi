@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Maillard Ops</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#09090b;--s1:#111114;--s2:#18181c;--s3:#222228;--bd:#2a2a32;--tx:#d0d0d8;--mt:#6b6b78;--wh:#f0f0f5;--gn:#34d399;--yl:#fbbf24;--rd:#f87171;--bl:#60a5fa;--gd:#c49a2a;--f:'Inter',-apple-system,sans-serif}
+html,body{height:100%;font-family:var(--f);background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased}
+.shell{max-width:1100px;margin:0 auto;padding:20px}
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.hdr h1{font-size:1.15rem;font-weight:800;color:var(--wh)}
+.hdr .sub{font-size:.68rem;color:var(--mt);margin-top:2px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gn);animation:p 2s infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Focus banner */
+.focus{background:linear-gradient(135deg,rgba(196,154,42,.08),rgba(196,154,42,.02));border:1px solid rgba(196,154,42,.2);border-radius:12px;padding:14px 18px;margin-bottom:16px}
+.focus h2{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gd);margin-bottom:8px}
+.focus li{font-size:.82rem;color:var(--wh);padding:3px 0;list-style:none}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:700px){.g2,.g3{grid-template-columns:1fr}}
+
+/* Card */
+.c{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 16px}
+.c h3{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mt);margin-bottom:10px}
+
+/* Rows */
+.r{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bd);font-size:.8rem}
+.r:last-child{border-bottom:none}
+.rn{color:var(--tx);font-weight:500;text-transform:capitalize}
+.rv{font-weight:700;color:var(--wh)}
+.badge{font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:8px;letter-spacing:.3px}
+.b-ok{background:rgba(52,211,153,.1);color:var(--gn)}
+.b-low{background:rgba(251,191,36,.1);color:var(--yl)}
+.b-crit,.b-stockout{background:rgba(248,113,113,.1);color:var(--rd)}
+.b-critical{background:rgba(248,113,113,.1);color:var(--rd)}
+.b-strong{background:rgba(52,211,153,.1);color:var(--gn)}
+.b-good{background:rgba(96,165,250,.1);color:var(--bl)}
+
+/* Trend arrows */
+.up{color:var(--gn)}.dn{color:var(--rd)}.st{color:var(--mt)}
+
+/* Actions */
+.act{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.act h3{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mt);margin-bottom:10px}
+.act li{font-size:.82rem;color:var(--wh);padding:5px 0;border-bottom:1px solid var(--bd);list-style:none;font-weight:500}
+.act li:last-child{border-bottom:none}
+
+/* Push/depri */
+.push{color:var(--gn);font-size:.78rem;padding:4px 0}
+.depri{color:var(--rd);font-size:.78rem;padding:4px 0;opacity:.8}
+
+.loading{text-align:center;padding:60px;color:var(--mt)}
+.mkt{font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:12px;margin-left:8px}
+.mkt-down{background:rgba(248,113,113,.1);color:var(--rd)}
+.mkt-up{background:rgba(52,211,153,.1);color:var(--gn)}
+.mkt-stable{background:rgba(96,165,250,.1);color:var(--bl)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="hdr">
+    <div>
+      <h1>Maillard Operations <span class="mkt" id="mkt"></span></h1>
+      <div class="sub" id="ts">Loading...</div>
+    </div>
+    <div class="dot" id="dot"></div>
+  </div>
+  <div id="app"><div class="loading">Loading...</div></div>
+</div>
+<script>
+const API=location.origin+'/api/ops/decision-summary';
+async function load(){
+  try{
+    const r=await fetch(API);if(!r.ok)throw new Error(r.status);
+    const d=await r.json();render(d);
+    document.getElementById('ts').textContent=new Date().toLocaleTimeString()+' -- refreshes every 5 min';
+  }catch(e){document.getElementById('app').innerHTML=`<div class="loading" style="color:var(--rd)">Error: ${e.message}</div>`}
+}
+function render(d){
+  const el=document.getElementById('app');
+  const mkt=document.getElementById('mkt');
+  const m=(d.market||'?').toUpperCase();
+  mkt.textContent='Market '+m;
+  mkt.className='mkt mkt-'+m.toLowerCase();
+
+  let h='';
+
+  // Today's Focus
+  const focus=d.todays_focus||[];
+  if(focus.length){
+    h+=`<div class="focus"><h2>Today's Focus</h2><ul>${focus.map(f=>`<li>${esc(f)}</li>`).join('')}</ul></div>`;
+  }
+
+  // Actions with approval buttons
+  const acts=d.actions||[];
+  h+=`<div class="act"><h3>Actions</h3>`;
+  if(acts.length){
+    h+=acts.map((a,i)=>`<div class="act-row" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)">
+      <span style="flex:1;font-size:.82rem;color:var(--wh)">${i+1}. ${esc(a)}</span>
+      <span style="display:flex;gap:6px">
+        <button onclick="approveAct('${esc(a)}')" style="background:rgba(52,211,153,.15);color:var(--gn);border:1px solid rgba(52,211,153,.3);border-radius:6px;padding:4px 10px;font-size:.68rem;font-weight:700;cursor:pointer">Approve</button>
+        <button onclick="rejectAct('${esc(a)}')" style="background:rgba(248,113,113,.1);color:var(--rd);border:1px solid rgba(248,113,113,.2);border-radius:6px;padding:4px 10px;font-size:.68rem;font-weight:700;cursor:pointer">Reject</button>
+      </span>
+    </div>`).join('');
+  }else{h+=`<div style="padding:8px 0;font-size:.82rem;color:var(--mt)">No action required today</div>`}
+  h+=`</div>`;
+
+  // Row 1: Sales + Demand
+  h+=`<div class="g2">`;
+
+  // Sales
+  const s=d.sales||{};
+  h+=`<div class="c"><h3>Sales Today (${s.total_units||0} units)</h3>`;
+  (s.top_products||[]).forEach(p=>{
+    h+=`<div class="r"><span class="rn">${esc(p.product.replace(/_/g,' '))}</span><span class="rv">${p.units}</span></div>`;
+  });
+  h+=`</div>`;
+
+  // Demand
+  const dm=d.demand||[];
+  h+=`<div class="c"><h3>Demand Signals</h3>`;
+  if(dm.length){
+    dm.forEach(p=>{
+      const arrow=p.trend==='rising'?'<span class="up">&#9650;</span>':p.trend==='dropping'?'<span class="dn">&#9660;</span>':'<span class="st">&#9654;</span>';
+      h+=`<div class="r"><span class="rn">${esc(p.product.replace(/_/g,' '))}</span><span>${arrow} ${p.change_pct>0?'+':''}${p.change_pct}%</span></div>`;
+    });
+  }else{h+=`<div style="font-size:.78rem;color:var(--mt)">All stable</div>`}
+  h+=`</div></div>`;
+
+  // Row 2: Inventory + Margins + Intelligence
+  h+=`<div class="g3">`;
+
+  // Inventory
+  const inv=d.inventory||{};
+  const invE=Object.entries(inv).sort((a,b)=>so(a[1].status)-so(b[1].status));
+  h+=`<div class="c"><h3>Inventory</h3>`;
+  invE.forEach(([k,v])=>{
+    const st=v.status.toUpperCase();
+    const cls=st==='OK'?'b-ok':st==='LOW'?'b-low':'b-crit';
+    h+=`<div class="r"><span class="rn">${esc(k.replace(/_/g,' '))}</span><span class="rv">${v.stock} ${v.unit}</span><span class="badge ${cls}">${st}</span></div>`;
+  });
+  h+=`</div>`;
+
+  // Margins
+  const ma=d.margin_alerts||[];
+  h+=`<div class="c"><h3>Margin Alerts</h3>`;
+  if(ma.length){
+    ma.forEach(a=>{
+      const cls=a.grade==='CRITICAL'?'b-critical':'b-low';
+      h+=`<div class="r"><span class="rn">${esc(a.product.replace(/_/g,' '))}</span><span>${a.margin_pct}%</span><span class="badge ${cls}">${a.grade}</span></div>`;
+    });
+  }else{h+=`<div style="font-size:.78rem;color:var(--gn)">All margins healthy</div>`}
+  h+=`</div>`;
+
+  // Sales Intelligence
+  const si=d.sales_intelligence||{};
+  h+=`<div class="c"><h3>Sales Intelligence</h3>`;
+  (si.push||[]).forEach(p=>{h+=`<div class="push">+ ${esc(p.product?p.product.replace(/_/g,' '):p.reason||p)}</div>`});
+  (si.deprioritize||[]).forEach(p=>{h+=`<div class="depri">- ${esc(p.product?p.product.replace(/_/g,' '):p.reason||p)}</div>`});
+  if(!si.push?.length&&!si.deprioritize?.length) h+=`<div style="font-size:.78rem;color:var(--mt)">No signals</div>`;
+  h+=`</div></div>`;
+
+  // Procurement
+  const pr=d.procurement||[];
+  if(pr.length){
+    h+=`<div class="c"><h3>Purchasing</h3>`;
+    pr.forEach(r=>{
+      const cls=r.urgency==='CRITICAL'?'b-critical':r.urgency==='HIGH'?'b-low':'b-good';
+      h+=`<div class="r"><span class="rn">${esc(r.item?.replace(/_/g,' '))}: ${r.recommended_qty} ${r.unit}</span><span style="font-size:.72rem;color:var(--mt)">${esc(r.supplier||'')}</span><span class="badge ${cls}">${r.urgency}</span></div>`;
+    });
+    h+=`</div>`;
+  }
+
+  // Dropbox Invoice Sync card
+  h+=`<div id="dbx-sync" class="c" style="margin-bottom:14px"><h3>Dropbox Invoice Sync</h3><div style="font-size:.78rem;color:var(--mt)">Loading...</div></div>`;
+
+  // Execution Queue placeholder
+  h+=`<div id="queue-section"></div>`;
+
+  el.innerHTML=h;
+  loadQueue();
+  loadSyncStatus();
+}
+function so(s){return s==='STOCKOUT'?0:s==='CRITICAL'?1:s==='LOW'?2:3}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+const B=location.origin+'/api/ops/approval';
+const J={'Content-Type':'application/json'};
+
+async function loadQueue(){
+  const el=document.getElementById('queue-section');
+  if(!el)return;
+  try{
+    const [logR,sumR]=await Promise.all([fetch(B+'/log'),fetch(B+'/queue')]);
+    const acts=(await logR.json()).actions||[];
+    const sum=await sumR.json();
+
+    const groups={pending:[],approved:[],executed:[],failed:[],rejected:[]};
+    acts.forEach(a=>{ if(groups[a.status]) groups[a.status].push(a); });
+
+    const colors={pending:'var(--yl)',approved:'var(--bl)',executed:'var(--gn)',failed:'var(--rd)',rejected:'var(--mt)'};
+
+    let q=`<div class="c" style="margin-top:14px">
+      <h3 style="margin-bottom:4px">Execution Queue</h3>
+      <div style="font-size:.68rem;color:var(--mt);margin-bottom:12px">
+        Pending ${sum.pending||0} | Approved ${sum.approved||0} | Executed ${sum.executed||0} | Failed ${sum.failed||0} | Rejected ${sum.rejected||0}
+      </div>`;
+
+    // Render each non-empty group
+    const sections=[
+      ['pending','Pending','var(--yl)'],
+      ['approved','Approved','var(--bl)'],
+      ['executed','Executed','var(--gn)'],
+      ['failed','Failed','var(--rd)'],
+    ];
+
+    sections.forEach(([key,label,color])=>{
+      const items=groups[key];
+      if(!items.length)return;
+      q+=`<div style="margin-bottom:10px">
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:${color};margin-bottom:6px">${label} (${items.length})</div>`;
+
+      items.forEach(a=>{
+        const dept=a.department?`<span style="font-size:.6rem;color:var(--mt);margin-left:6px">${a.department}</span>`:'';
+        const ts=a.timestamp?a.timestamp.substring(11,16):'';
+        const reason=a.reason?`<div style="font-size:.68rem;color:var(--mt);margin-top:2px">${esc(a.reason).substring(0,60)}</div>`:'';
+
+        q+=`<div style="padding:6px 0;border-bottom:1px solid var(--bd)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:.8rem;color:var(--wh);font-weight:500">${esc(a.title||a.action||'?').substring(0,55)}${dept}</span>
+            <span style="display:flex;gap:5px;align-items:center">
+              <span style="font-size:.62rem;color:var(--mt)">${ts}</span>`;
+
+        // Buttons per status
+        if(key==='pending'){
+          q+=`<button onclick="qAction('approve','${a.id}')" style="background:rgba(52,211,153,.12);color:var(--gn);border:1px solid rgba(52,211,153,.25);border-radius:5px;padding:3px 8px;font-size:.62rem;font-weight:700;cursor:pointer">Approve</button>`;
+          q+=`<button onclick="qAction('reject','${a.id}')" style="background:rgba(248,113,113,.08);color:var(--rd);border:1px solid rgba(248,113,113,.15);border-radius:5px;padding:3px 8px;font-size:.62rem;font-weight:700;cursor:pointer">Reject</button>`;
+        }
+        if(key==='approved'){
+          q+=`<button onclick="qAction('execute','${a.id}')" style="background:rgba(96,165,250,.12);color:var(--bl);border:1px solid rgba(96,165,250,.25);border-radius:5px;padding:3px 8px;font-size:.62rem;font-weight:700;cursor:pointer">Mark Done</button>`;
+        }
+        if(key==='failed'){
+          q+=`<button onclick="qAction('retry','${a.id}')" style="background:rgba(251,191,36,.12);color:var(--yl);border:1px solid rgba(251,191,36,.25);border-radius:5px;padding:3px 8px;font-size:.62rem;font-weight:700;cursor:pointer">Retry</button>`;
+        }
+
+        q+=`</span></div>${reason}</div>`;
+      });
+      q+=`</div>`;
+    });
+
+    if(!acts.length) q+=`<div style="font-size:.78rem;color:var(--mt);padding:8px 0">No actions in queue. Generate from morning brief.</div>`;
+    q+=`<button onclick="generateActions()" style="margin-top:8px;width:100%;padding:8px;background:var(--s3);border:1px solid var(--bd);border-radius:8px;color:var(--mt);font-size:.72rem;font-weight:600;cursor:pointer;font-family:var(--f)">Generate Today's Actions</button>`;
+    q+=`</div>`;
+    el.innerHTML=q;
+  }catch(e){el.innerHTML=`<div class="c"><h3>Execution Queue</h3><div style="color:var(--rd);font-size:.78rem">Error loading queue</div></div>`}
+}
+
+async function qAction(type,id){
+  try{
+    if(type==='approve') await fetch(B+'/approve',{method:'POST',headers:J,body:JSON.stringify({action_id:id})});
+    else if(type==='reject'){
+      const r=prompt('Reason?','');
+      if(r===null)return;
+      await fetch(B+'/reject',{method:'POST',headers:J,body:JSON.stringify({action_id:id,reason:r})});
+    }
+    else if(type==='execute') await fetch(B+'/execute',{method:'POST',headers:J,body:JSON.stringify({action_id:id})});
+    else if(type==='retry'){
+      // Re-submit as new pending
+      const log=await(await fetch(B+'/log')).json();
+      const orig=log.actions.find(a=>a.id===id);
+      if(orig) await fetch(B+'/request',{method:'POST',headers:J,body:JSON.stringify({action:orig.action,department:orig.department,reason:'Retry: '+orig.action})});
+    }
+    loadQueue();
+  }catch(e){alert('Error: '+e.message)}
+}
+
+async function approveAct(action){
+  await fetch(B+'/request',{method:'POST',headers:J,body:JSON.stringify({action:action})});
+  loadQueue();
+}
+
+async function rejectAct(action){
+  const reason=prompt('Reason?','');
+  if(reason===null)return;
+  const r=await fetch(B+'/request',{method:'POST',headers:J,body:JSON.stringify({action:action})});
+  const d=await r.json();
+  if(d.id) await fetch(B+'/reject',{method:'POST',headers:J,body:JSON.stringify({action_id:d.id,reason:reason})});
+  loadQueue();
+}
+
+async function generateActions(){
+  await fetch(B+'/generate',{method:'POST'});
+  loadQueue();
+}
+
+// ── Dropbox Invoice Sync ──
+const SYNC_API=location.origin+'/api/invoices';
+function renderSync(s,msg){
+  const el=document.getElementById('dbx-sync');
+  if(!el)return;
+  const st=s.status||'ok';
+  const bc=st==='ok'?'b-ok':st==='running'?'b-good':'b-crit';
+  const lbl=st.toUpperCase();
+  const ts=s.last_sync?new Date(s.last_sync).toLocaleTimeString():'Never';
+  const nf=s.new_files??s.last_new_files??0;
+  const uf=s.updated_files??s.last_updated_files??0;
+  const sk=s.skipped_files??s.last_skipped_files??0;
+  const rv=s.review_required??s.pending_review??0;
+  let h=`<h3 style="display:flex;justify-content:space-between;align-items:center">Dropbox Invoice Sync <span class="badge ${bc}">${lbl}</span></h3>`;
+  h+=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 14px;margin:10px 0">`;
+  h+=`<div class="r" style="border:none;padding:2px 0"><span class="rn">Last Sync</span><span class="rv">${ts}</span></div>`;
+  h+=`<div class="r" style="border:none;padding:2px 0"><span class="rn">New</span><span class="rv" style="color:var(--gn)">${nf}</span></div>`;
+  h+=`<div class="r" style="border:none;padding:2px 0"><span class="rn">Updated</span><span class="rv" style="color:var(--bl)">${uf}</span></div>`;
+  h+=`<div class="r" style="border:none;padding:2px 0"><span class="rn">Tracked</span><span class="rv">${s.files_tracked??'?'}</span></div>`;
+  h+=`<div class="r" style="border:none;padding:2px 0"><span class="rn">Skipped</span><span class="rv" style="color:var(--mt)">${sk}</span></div>`;
+  h+=`<div class="r" style="border:none;padding:2px 0"><span class="rn">Review</span><span class="rv" style="color:${rv>0?'var(--yl)':'var(--mt)'}">${rv}</span></div>`;
+  h+=`</div>`;
+  if(msg){h+=`<div style="font-size:.72rem;color:var(--gn);margin-bottom:8px">${esc(msg)}</div>`}
+  h+=`<button id="sync-btn" onclick="runSync()" style="width:100%;padding:8px;background:var(--s3);border:1px solid var(--bd);border-radius:8px;color:var(--wh);font-size:.72rem;font-weight:700;cursor:pointer;font-family:var(--f)">Sync Dropbox Invoices</button>`;
+  el.innerHTML=h;
+}
+async function loadSyncStatus(){
+  try{
+    const r=await fetch(SYNC_API+'/sync-status');
+    const s=await r.json();
+    renderSync(s);
+  }catch(e){
+    const el=document.getElementById('dbx-sync');
+    if(el)el.innerHTML=`<h3>Dropbox Invoice Sync</h3><div style="font-size:.78rem;color:var(--rd)">Failed to load status</div>`;
+  }
+}
+async function runSync(){
+  const btn=document.getElementById('sync-btn');
+  if(btn){btn.disabled=true;btn.textContent='Syncing...';}
+  renderSync({status:'running',last_sync:null,files_tracked:'...',last_new_files:'...',last_skipped_files:'...',pending_review:'...'},'');
+  try{
+    const r=await fetch(SYNC_API+'/sync-dropbox',{method:'POST'});
+    const s=await r.json();
+    if(s.error&&s.status==='running'){
+      renderSync(s,'Another sync is already running');
+      return;
+    }
+    let msg='Sync complete.';
+    if(s.new_files>0) msg+=` ${s.new_files} new invoice${s.new_files>1?'s':''} processed.`;
+    else msg+=' No new invoices found.';
+    if(s.review_required>0) msg+=` ${s.review_required} need${s.review_required>1?'':'s'} review.`;
+    s.files_tracked='?';
+    renderSync(s,msg);
+    // Refresh status to get tracked count
+    setTimeout(loadSyncStatus,500);
+  }catch(e){
+    renderSync({status:'error',last_sync:null},'Sync failed: '+e.message);
+  }
+}
+
+load();setInterval(load,300000);setInterval(loadQueue,30000);
+</script>
+</body>
+</html>

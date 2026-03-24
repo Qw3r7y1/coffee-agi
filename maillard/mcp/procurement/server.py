@@ -89,6 +89,33 @@ class ProcurementMCP(BaseMCPServer):
                 prompt = f"Generate a green coffee sourcing brief. Target profile: {arguments.get('flavor_profile')}. Roast: {arguments.get('roast_target')}. Volume: {arguments.get('volume_kg', 'TBD')}kg. Budget: ${arguments.get('budget_per_kg', 'TBD')}/kg."
                 return self.ok({"sourcing_brief": await ask(prompt, SYSTEM_PROMPT, max_tokens=1500)})
             case "query_procurement":
-                return self.ok({"answer": await ask(arguments.get("query", ""), SYSTEM_PROMPT)})
+                return await self._handle_query(arguments.get("query", ""))
             case _:
                 return self.err(f"Unknown tool: {name}")
+
+    async def _handle_query(self, query: str) -> dict:
+        """Return real procurement recommendations, fall back to Claude."""
+        try:
+            from maillard.mcp.operations.procurement import get_procurement_report
+            report = get_procurement_report()
+            recs = report.get("recommendations", [])
+
+            lower = query.lower()
+            if any(kw in lower for kw in ["order", "buy", "stock", "supplier", "reorder", "purchase", "what to", "need"]):
+                if not recs:
+                    return self.ok({"answer": "No purchases needed right now. All stock levels sufficient."})
+
+                lines = ["Purchase Recommendations", "=" * 35, ""]
+                for r in recs:
+                    lines.append(f"[{r['urgency']}] {r['item']}: order {r['recommended_qty']} {r['unit']} from {r['supplier']}")
+                    lines.append(f"  {r['days_left']}d stock left. Lead: {r['lead_time_days']}d. {r['reason']}")
+                    lines.append("")
+                lines.append(f"Total estimated cost: EUR {report['total_estimated_cost']}")
+                return self.ok({"answer": "\n".join(lines), "procurement": report})
+
+            # Other procurement question: enrich Claude
+            context = "\n".join(f"{r['urgency']}: {r['item']} ({r['days_left']}d left)" for r in recs) if recs else "No purchases needed."
+            answer = await ask(f"{query}\n\nCurrent procurement status:\n{context}", SYSTEM_PROMPT)
+            return self.ok({"answer": answer, "procurement": report})
+        except Exception:
+            return self.ok({"answer": await ask(query, SYSTEM_PROMPT)})

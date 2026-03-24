@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Maillard — Viral Content Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#09090b;--s1:#111114;--s2:#18181c;--s3:#222228;--bd:#2a2a32;--tx:#d0d0d8;--mt:#6b6b78;--wh:#f0f0f5;--gn:#34d399;--yl:#fbbf24;--rd:#f87171;--bl:#60a5fa;--pp:#a78bfa;--gd:#c49a2a;--f:'Inter',-apple-system,sans-serif}
+html,body{height:100%;font-family:var(--f);background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased}
+.shell{max-width:1100px;margin:0 auto;padding:20px}
+
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.hdr h1{font-size:1.15rem;font-weight:800;color:var(--wh)}
+.hdr .sub{font-size:.68rem;color:var(--mt);margin-top:2px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gn);animation:p 2s infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:800px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+/* Card */
+.c{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 16px}
+.c h3{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mt);margin-bottom:10px}
+.c.span2{grid-column:span 2}
+@media(max-width:800px){.c.span2{grid-column:span 1}}
+
+/* Stat card */
+.stat{text-align:center;padding:18px 14px}
+.stat .val{font-size:1.6rem;font-weight:800;color:var(--wh);line-height:1.1}
+.stat .lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mt);margin-top:6px}
+
+/* Rows */
+.r{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bd);font-size:.8rem}
+.r:last-child{border-bottom:none}
+.rn{color:var(--tx);font-weight:500;flex:1}
+.rv{font-weight:700;color:var(--wh);margin-left:8px}
+
+/* Badges */
+.badge{font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:8px;letter-spacing:.3px;margin-left:6px}
+.b-gn{background:rgba(52,211,153,.1);color:var(--gn)}
+.b-yl{background:rgba(251,191,36,.1);color:var(--yl)}
+.b-rd{background:rgba(248,113,113,.1);color:var(--rd)}
+.b-bl{background:rgba(96,165,250,.1);color:var(--bl)}
+.b-pp{background:rgba(167,139,250,.1);color:var(--pp)}
+
+/* Queue pills */
+.pills{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.pill{display:flex;flex-direction:column;align-items:center;padding:12px 20px;border-radius:10px;min-width:90px}
+.pill .pv{font-size:1.5rem;font-weight:800;line-height:1.1}
+.pill .pl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-top:4px}
+.pill-pend{background:rgba(96,165,250,.08);}.pill-pend .pv{color:var(--bl)}.pill-pend .pl{color:var(--bl)}
+.pill-post{background:rgba(52,211,153,.08);}.pill-post .pv{color:var(--gn)}.pill-post .pl{color:var(--gn)}
+.pill-fail{background:rgba(248,113,113,.08);}.pill-fail .pv{color:var(--rd)}.pill-fail .pl{color:var(--rd)}
+
+/* Learning section */
+.learn{background:linear-gradient(135deg,rgba(196,154,42,.08),rgba(196,154,42,.02));border:1px solid rgba(196,154,42,.2);border-radius:12px;padding:14px 18px;margin-bottom:14px}
+.learn h3{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gd);margin-bottom:10px}
+.learn-section{margin-bottom:12px}
+.learn-section:last-child{margin-bottom:0}
+.learn-section h4{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);margin-bottom:6px}
+.learn li{font-size:.82rem;color:var(--wh);padding:3px 0;list-style:none;font-weight:500}
+.learn li::before{content:"→ ";color:var(--gd);font-weight:700}
+
+/* Top post row */
+.tp{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd);font-size:.78rem}
+.tp:last-child{border-bottom:none}
+.tp-rank{font-size:.6rem;font-weight:800;color:var(--gd);min-width:16px}
+.tp-cap{flex:1;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-val{font-weight:800;color:var(--wh);white-space:nowrap}
+.tp-tag{font-size:.55rem;font-weight:700;padding:1px 6px;border-radius:6px;background:rgba(167,139,250,.1);color:var(--pp)}
+
+/* Breakdown bar */
+.bar-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--bd);font-size:.78rem}
+.bar-row:last-child{border-bottom:none}
+.bar-name{min-width:90px;font-weight:600;color:var(--wh);text-transform:capitalize}
+.bar-fill-wrap{flex:1;height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+.bar-val{font-size:.7rem;font-weight:700;color:var(--mt);min-width:60px;text-align:right}
+
+.loading{text-align:center;padding:60px;color:var(--mt)}
+.err{text-align:center;padding:60px;color:var(--rd)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="hdr">
+    <div>
+      <h1>Maillard Viral Content Engine</h1>
+      <div class="sub" id="ts">Loading...</div>
+    </div>
+    <div class="dot" id="dot"></div>
+  </div>
+  <div id="app"><div class="loading">Loading performance data...</div></div>
+</div>
+<script>
+const API = location.origin + '/api/content/performance-summary';
+const esc = s => {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+};
+const fmt = n => n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n);
+
+async function load() {
+  try {
+    const r = await fetch(API);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    render(d);
+    document.getElementById('ts').textContent =
+      new Date().toLocaleTimeString() + ' — refreshes every 5 min';
+  } catch (e) {
+    document.getElementById('app').innerHTML =
+      `<div class="err">Error loading data: ${esc(e.message)}</div>`;
+  }
+}
+
+function render(d) {
+  const el = document.getElementById('app');
+  let h = '';
+
+  // ── Queue Status ──
+  const q = d.queue || {};
+  h += `<div class="c" style="margin-bottom:14px">
+    <h3>Queue Status (${q.total || 0} total)</h3>
+    <div class="pills">
+      <div class="pill pill-pend"><span class="pv">${q.pending || 0}</span><span class="pl">Pending</span></div>
+      <div class="pill pill-post"><span class="pv">${q.posted || 0}</span><span class="pl">Posted</span></div>
+      <div class="pill pill-fail"><span class="pv">${q.failed || 0}</span><span class="pl">Failed</span></div>
+    </div>
+  </div>`;
+
+  // ── Performance Summary ──
+  const t = d.totals || {};
+  h += `<div class="g4">
+    <div class="c stat"><div class="val">${fmt(t.views || 0)}</div><div class="lbl">Total Views</div></div>
+    <div class="c stat"><div class="val">${fmt(t.likes || 0)}</div><div class="lbl">Total Likes</div></div>
+    <div class="c stat"><div class="val">${t.avg_watch_time || 0}s</div><div class="lbl">Avg Watch Time</div></div>
+    <div class="c stat"><div class="val">${Math.round((t.avg_completion_rate || 0) * 100)}%</div><div class="lbl">Avg Completion</div></div>
+  </div>`;
+
+  // ── Top Performers ──
+  const top = d.top_performers || {};
+  h += `<div class="g2">`;
+
+  // By views
+  h += `<div class="c"><h3>Top by Views</h3>`;
+  (top.by_views || []).forEach((p, i) => {
+    h += `<div class="tp">
+      <span class="tp-rank">#${i + 1}</span>
+      <span class="tp-cap">${esc(p.caption || p.id)}</span>
+      <span class="tp-tag">${esc(p.type)}</span>
+      <span class="tp-val">${fmt(p.views)}</span>
+    </div>`;
+  });
+  h += `</div>`;
+
+  // By completion
+  h += `<div class="c"><h3>Top by Completion Rate</h3>`;
+  (top.by_completion || []).forEach((p, i) => {
+    h += `<div class="tp">
+      <span class="tp-rank">#${i + 1}</span>
+      <span class="tp-cap">${esc(p.caption || p.id)}</span>
+      <span class="tp-tag">${esc(p.hook)}</span>
+      <span class="tp-val">${Math.round(p.completion_rate * 100)}%</span>
+    </div>`;
+  });
+  h += `</div></div>`;
+
+  // ── Content Breakdown ──
+  const bd = d.breakdown || {};
+  const byType = bd.by_type || [];
+  const byHook = bd.by_hook || [];
+  const maxTypeViews = byType.length ? Math.max(...byType.map(t => t.avg_views)) : 1;
+  const maxHookViews = byHook.length ? Math.max(...byHook.map(h => h.avg_views)) : 1;
+
+  h += `<div class="g2">`;
+
+  // By content type
+  h += `<div class="c"><h3>By Content Type</h3>`;
+  byType.forEach((t, i) => {
+    const pct = Math.round((t.avg_views / maxTypeViews) * 100);
+    const color = i === 0 ? 'var(--gn)' : i === byType.length - 1 ? 'var(--rd)' : 'var(--bl)';
+    const label = i === 0 ? '<span class="badge b-gn">BEST</span>' : i === byType.length - 1 && byType.length > 1 ? '<span class="badge b-rd">WEAK</span>' : '';
+    h += `<div class="bar-row">
+      <span class="bar-name">${esc(t.type)}${label}</span>
+      <div class="bar-fill-wrap"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <span class="bar-val">${fmt(t.avg_views)} avg</span>
+    </div>`;
+  });
+  h += `</div>`;
+
+  // By hook category
+  h += `<div class="c"><h3>By Hook Category</h3>`;
+  byHook.forEach((hk, i) => {
+    const pct = Math.round((hk.avg_views / maxHookViews) * 100);
+    const color = i === 0 ? 'var(--gn)' : i === byHook.length - 1 ? 'var(--rd)' : 'var(--bl)';
+    const label = i === 0 ? '<span class="badge b-gn">BEST</span>' : i === byHook.length - 1 && byHook.length > 1 ? '<span class="badge b-rd">WEAK</span>' : '';
+    h += `<div class="bar-row">
+      <span class="bar-name">${esc(hk.hook.replace(/_/g, ' '))}${label}</span>
+      <div class="bar-fill-wrap"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <span class="bar-val">${fmt(hk.avg_views)} avg</span>
+    </div>`;
+  });
+  h += `</div></div>`;
+
+  // Best posting time
+  if (bd.best_time) {
+    h += `<div class="c" style="margin-bottom:14px;text-align:center;padding:10px 16px">
+      <span style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mt)">Best Posting Time</span>
+      <span style="font-weight:800;color:var(--gd);margin-left:10px;font-size:.95rem">${esc(bd.best_time.label)}</span>
+      <span style="font-size:.72rem;color:var(--mt);margin-left:6px">(${fmt(bd.best_time.avg_views)} avg views)</span>
+    </div>`;
+  }
+
+  // ── Learning Loop ──
+  const L = d.learning || {};
+  h += `<div class="learn">`;
+  h += `<h3>Learning Loop</h3>`;
+
+  if ((L.working || []).length) {
+    h += `<div class="learn-section"><h4>What's Working</h4><ul>`;
+    L.working.forEach(w => { h += `<li>${esc(w)}</li>`; });
+    h += `</ul></div>`;
+  }
+
+  if ((L.test_next || []).length) {
+    h += `<div class="learn-section"><h4>Test Next</h4><ul>`;
+    L.test_next.forEach(t => { h += `<li>${esc(t)}</li>`; });
+    h += `</ul></div>`;
+  }
+
+  if ((L.variations || []).length) {
+    h += `<div class="learn-section"><h4>Variation Ideas</h4><ul>`;
+    L.variations.forEach(v => { h += `<li>${esc(v)}</li>`; });
+    h += `</ul></div>`;
+  }
+
+  h += `</div>`;
+
+  el.innerHTML = h;
+}
+
+load();
+setInterval(load, 300000);
+</script>
+</body>
+</html>

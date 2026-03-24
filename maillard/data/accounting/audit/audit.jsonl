@@ -1,0 +1,14 @@
+{"ts": "2026-03-19T19:10:23.806519+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}
+{"ts": "2026-03-19T19:11:19.481833+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}
+{"ts": "2026-03-19T19:20:26.575904+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}
+{"ts": "2026-03-19T20:32:13.199432+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}
+{"ts": "2026-03-19T20:32:13.200432+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}
+{"ts": "2026-03-20T19:54:01.041127+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}
+{"ts": "2026-03-23T17:33:31.613045+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}
+{"ts": "2026-03-23T19:05:52.097170+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}
+{"ts": "2026-03-23T19:06:43.579311+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}
+{"ts": "2026-03-23T19:07:03.305259+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}
+{"ts": "2026-03-23T19:25:59.324836+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}
+{"ts": "2026-03-23T19:26:28.410532+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}
+{"ts": "2026-03-23T19:26:43.684508+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}
+{"ts": "2026-03-23T19:26:55.101888+00:00", "department": "accounting", "event": "tool_called", "payload": {"tool": "query_accounting"}}

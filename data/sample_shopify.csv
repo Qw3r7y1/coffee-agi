@@ -1,0 +1,7 @@
+order_id,created_at,title,variant,quantity,price,fulfillment
+SH-1001,2026-03-19T09:12:00,Ethiopia Yirgacheffe 250g,,2,12.00,fulfilled
+SH-1002,2026-03-19T09:30:00,Brazil Santos 1kg,,1,35.00,fulfilled
+SH-1003,2026-03-19T10:05:00,Espresso Blend 250g,,3,10.00,fulfilled
+SH-1004,2026-03-19T10:20:00,Ethiopia Yirgacheffe 1kg,,1,40.00,pending
+SH-1005,2026-03-19T11:00:00,House Blend 250g,,2,9.50,fulfilled
+SH-1006,2026-03-19T11:30:00,,Cold Brew Kit,1,22.00,fulfilled

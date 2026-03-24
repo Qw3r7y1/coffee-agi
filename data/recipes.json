@@ -1,0 +1,21 @@
+{
+  "latte":             {"espresso_beans_kg": 0.022, "whole_milk_liters": 0.25},
+  "cappuccino":        {"espresso_beans_kg": 0.022, "whole_milk_liters": 0.20},
+  "flat_white":        {"espresso_beans_kg": 0.022, "whole_milk_liters": 0.18},
+  "espresso":          {"espresso_beans_kg": 0.022},
+  "double_espresso":   {"espresso_beans_kg": 0.022},
+  "americano":         {"espresso_beans_kg": 0.022},
+  "mocha":             {"espresso_beans_kg": 0.022, "whole_milk_liters": 0.22},
+  "macchiato":         {"espresso_beans_kg": 0.022, "whole_milk_liters": 0.03},
+  "cortado":           {"espresso_beans_kg": 0.022, "whole_milk_liters": 0.06},
+  "freddo_espresso":   {"espresso_beans_kg": 0.022},
+  "freddo_cappuccino": {"espresso_beans_kg": 0.022, "whole_milk_liters": 0.15},
+  "iced_latte":        {"espresso_beans_kg": 0.022, "whole_milk_liters": 0.25, "oat_milk_liters": 0},
+  "cold_brew":         {"espresso_beans_kg": 0.060},
+  "filter_coffee":     {"espresso_beans_kg": 0.015},
+  "pour_over":         {"espresso_beans_kg": 0.018},
+  "ethiopia_bag_250g": {"ethiopia_yirgacheffe_kg": 0.25},
+  "brazil_bag_250g":   {"brazil_espresso_kg": 0.25},
+  "ethiopia_bag_1kg":  {"ethiopia_yirgacheffe_kg": 1.0},
+  "brazil_bag_1kg":    {"brazil_espresso_kg": 1.0}
+}

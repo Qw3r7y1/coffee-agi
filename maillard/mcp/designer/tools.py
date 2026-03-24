@@ -154,6 +154,20 @@ TOOLS: list[dict] = [
         },
     },
     {
+        "name": "generate_instagram_post",
+        "description": (
+            "EXECUTION TOOL: Generate a complete Instagram post with REAL image, video, caption, and hashtags. "
+            "Returns file paths to generated assets. Does NOT return plans or theory — only assets."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "topic": {"type": "string", "description": "Topic for the post (e.g. 'espresso cinematic luxury', 'cold brew summer', 'latte art')"},
+            },
+            "required": ["topic"],
+        },
+    },
+    {
         "name": "generate_product_mockup",
         "description": (
             "Generate a PNG product mockup showing the Maillard coffee bag in perspective. "

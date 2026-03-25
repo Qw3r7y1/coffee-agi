@@ -97,3 +97,91 @@ def approve_recipe(key: str) -> dict | None:
     if cur.rowcount == 0:
         return None
     return get_recipe(key)
+
+
+def update_recipe(key: str, updates: dict) -> dict | None:
+    """Update an existing recipe (approved or draft). Syncs to DB + JSON.
+
+    updates can contain:
+        - display_name: str
+        - sell_price: float
+        - ingredients: [{ingredient_key, quantity, unit}, ...]
+        - status: str (optional, keeps current if not provided)
+
+    Returns updated recipe or None if not found.
+    """
+    conn = get_conn()
+    now = now_iso()
+    existing = conn.execute("SELECT * FROM recipes WHERE recipe_key=?", (key,)).fetchone()
+    if not existing:
+        conn.close()
+        return None
+
+    # Update header fields
+    if "display_name" in updates:
+        conn.execute("UPDATE recipes SET display_name=?, updated_at=? WHERE recipe_key=?",
+                     (updates["display_name"], now, key))
+    if "sell_price" in updates:
+        conn.execute("UPDATE recipes SET sell_price=?, updated_at=? WHERE recipe_key=?",
+                     (updates["sell_price"], now, key))
+    if "status" in updates:
+        conn.execute("UPDATE recipes SET status=?, updated_at=? WHERE recipe_key=?",
+                     (updates["status"], now, key))
+    else:
+        conn.execute("UPDATE recipes SET updated_at=? WHERE recipe_key=?", (now, key))
+
+    # Update ingredients if provided
+    if "ingredients" in updates:
+        conn.execute("DELETE FROM recipe_ingredients WHERE recipe_key=?", (key,))
+        for ing in updates["ingredients"]:
+            ik = ing.get("ingredient_key", "")
+            if not ik:
+                continue
+            conn.execute("""
+                INSERT OR IGNORE INTO ingredients (ingredient_key, display_name, base_unit, updated_at)
+                VALUES (?, ?, ?, ?)
+            """, (ik, ik.replace("_", " ").title(), ing.get("unit", "ea"), now))
+            conn.execute("""
+                INSERT INTO recipe_ingredients (recipe_key, ingredient_key, quantity, unit)
+                VALUES (?, ?, ?, ?)
+            """, (key, ik, ing.get("quantity", 0), ing.get("unit", "ea")))
+
+    conn.commit()
+    conn.close()
+
+    # Sync to recipes.json for fallback
+    _sync_recipe_to_json(key)
+
+    return get_recipe(key)
+
+
+def recalculate_recipe_cost(key: str) -> dict | None:
+    """Recalculate cost for a recipe using current ingredient costs."""
+    from maillard.mcp.operations.cost_engine import calculate_recipe_cost
+    return calculate_recipe_cost(key)
+
+
+def _sync_recipe_to_json(key: str) -> None:
+    """Write recipe to recipes.json for fallback compatibility."""
+    import json
+    from pathlib import Path
+    recipes_file = Path(__file__).resolve().parent.parent.parent / "data" / "recipes.json"
+
+    conn = get_conn()
+    ings = conn.execute("SELECT ingredient_key, quantity FROM recipe_ingredients WHERE recipe_key=?", (key,)).fetchall()
+    conn.close()
+
+    if not ings:
+        return
+
+    entry = {r["ingredient_key"]: r["quantity"] for r in ings}
+
+    data = {}
+    if recipes_file.exists():
+        try:
+            data = json.loads(recipes_file.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+
+    data[key] = entry
+    recipes_file.write_text(json.dumps(data, indent=2), encoding="utf-8")

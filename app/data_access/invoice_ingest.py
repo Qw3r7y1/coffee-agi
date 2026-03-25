@@ -29,10 +29,10 @@ def post_ingest_to_central_db(parsed_invoice: dict) -> dict:
     total = parsed_invoice.get("invoice_total") or parsed_invoice.get("total")
     source = parsed_invoice.get("source_file") or parsed_invoice.get("_source_file")
 
-    # Dedupe check
+    # Dedupe check (case-insensitive vendor)
     if inv_num:
         existing = conn.execute(
-            "SELECT id FROM invoices WHERE vendor=? AND invoice_number=?",
+            "SELECT id FROM invoices WHERE LOWER(vendor)=LOWER(?) AND invoice_number=?",
             (vendor, inv_num)
         ).fetchone()
         if existing:

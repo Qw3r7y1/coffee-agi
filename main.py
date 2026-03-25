@@ -170,6 +170,37 @@ def recipe_get_one(recipe_key: str):
     return result
 
 
+@app.get("/api/recipes/get/{recipe_key}", tags=["Recipes"])
+def recipe_get(recipe_key: str):
+    """Get any recipe (approved or draft) from the central DB."""
+    from app.data_access.recipes_repo import get_recipe
+    result = get_recipe(recipe_key)
+    if result is None:
+        raise HTTPException(404, f"Recipe '{recipe_key}' not found")
+    return result
+
+
+@app.put("/api/recipes/update/{recipe_key}", tags=["Recipes"])
+def recipe_update_approved(recipe_key: str, body: dict):
+    """Update an approved recipe's ingredients, display name, or sell price."""
+    from app.data_access.recipes_repo import update_recipe, recalculate_recipe_cost
+    result = update_recipe(recipe_key, body)
+    if result is None:
+        raise HTTPException(404, f"Recipe '{recipe_key}' not found")
+    cost = recalculate_recipe_cost(recipe_key)
+    return {**result, "cost": cost}
+
+
+@app.get("/api/recipes/recalculate/{recipe_key}", tags=["Recipes"])
+def recipe_recalc(recipe_key: str):
+    """Recalculate cost for a recipe."""
+    from app.data_access.recipes_repo import recalculate_recipe_cost
+    result = recalculate_recipe_cost(recipe_key)
+    if result is None:
+        raise HTTPException(404, f"Recipe '{recipe_key}' not found")
+    return result
+
+
 @app.post("/api/recipes/reject/{recipe_key}", tags=["Recipes"])
 def recipe_reject(recipe_key: str):
     from maillard.recipe_builder import reject_recipe_draft
@@ -197,9 +228,22 @@ def recipe_ingredients():
 
 @app.get("/api/ingredients/list", tags=["Ingredients"])
 def ingredients_list(search: str = ""):
-    """List all known ingredients, optionally filtered by search term."""
+    """List all known ingredients + approved recipes (as potential sub-ingredients)."""
     from app.data_access.ingredients_repo import list_ingredients
+    from app.data_access.recipes_repo import list_recipes
     ings = list_ingredients()
+
+    # Add approved recipes as selectable ingredients (recipe-as-ingredient)
+    for r in list_recipes(status="approved"):
+        ings.append({
+            "ingredient_key": r["recipe_key"],
+            "display_name": r["display_name"] + " (recipe)",
+            "base_unit": "ea",
+            "latest_unit_cost": None,  # calculated dynamically
+            "cost_source": "recipe",
+            "is_recipe": True,
+        })
+
     if search:
         s = search.lower()
         ings = [i for i in ings if s in i["ingredient_key"].lower() or s in (i["display_name"] or "").lower()]
@@ -415,11 +459,26 @@ def bulk_parse_history(normalized_name: str):
 
 @app.post("/api/bulk-parse/backfill", tags=["BulkParse"])
 def bulk_parse_backfill():
-    from app.data_access.bulk_parse_repo import migrate_columns, backfill_bulk_parse, rebuild_ingredient_costs
+    from app.data_access.bulk_parse_repo import migrate_columns, backfill_bulk_parse, rebuild_ingredient_costs, auto_fix_price_inconsistencies
     migrate_columns()
+    fixed = auto_fix_price_inconsistencies()
     updated = backfill_bulk_parse()
     rebuilt = rebuild_ingredient_costs()
-    return {"items_updated": updated, "ingredients_rebuilt": rebuilt}
+    return {"items_updated": updated, "ingredients_rebuilt": rebuilt, "price_fixes": fixed}
+
+
+@app.get("/api/bulk-parse/inconsistencies", tags=["BulkParse"])
+def bulk_parse_inconsistencies():
+    """Find items where same vendor+product has different unit prices."""
+    from app.data_access.bulk_parse_repo import detect_price_inconsistencies
+    return detect_price_inconsistencies()
+
+
+@app.post("/api/bulk-parse/fix-prices", tags=["BulkParse"])
+def bulk_parse_fix_prices():
+    """Auto-correct inconsistent unit prices."""
+    from app.data_access.bulk_parse_repo import auto_fix_price_inconsistencies
+    return auto_fix_price_inconsistencies()
 
 
 @app.post("/api/invoices/sync-dropbox", tags=["Invoices"])
@@ -444,6 +503,35 @@ def invoices_refresh_downstream():
 def bulk_parse_ui():
     with open("frontend/bulk_parse.html", "r", encoding="utf-8") as f:
         return f.read()
+
+
+# ── Order consumables endpoints ───────────────────────────────────────────────
+
+@app.get("/api/consumables/rules", tags=["Consumables"])
+def consumables_rules():
+    from maillard.order_consumables import get_rules
+    return get_rules()
+
+
+@app.put("/api/consumables/rules", tags=["Consumables"])
+def consumables_update_rules(body: dict):
+    from maillard.order_consumables import save_rules, get_rules
+    save_rules(body.get("rules", []))
+    return get_rules()
+
+
+@app.get("/api/consumables/daily/{date}", tags=["Consumables"])
+def consumables_daily(date: str):
+    from maillard.order_consumables import calculate_daily_consumables_cost
+    return calculate_daily_consumables_cost(date)
+
+
+@app.get("/api/consumables/today", tags=["Consumables"])
+def consumables_today():
+    from maillard.order_consumables import calculate_daily_consumables_cost
+    from datetime import datetime, timezone
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return calculate_daily_consumables_cost(today)
 
 
 @app.get("/api/sales/live", tags=["Sales"])

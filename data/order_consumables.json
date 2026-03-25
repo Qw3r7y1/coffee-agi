@@ -1,0 +1,22 @@
+{
+  "rules": [
+    {
+      "name": "bag",
+      "description": "Paper/plastic bag for multi-item orders",
+      "condition": "item_count >= 2",
+      "ingredient_key": "kraft_pastry_dry_wax_bag_6_5x8_2_000",
+      "quantity": 1,
+      "unit": "ea",
+      "enabled": true
+    },
+    {
+      "name": "cup_carrier",
+      "description": "Cup carrier for orders with 3+ drinks",
+      "condition": "drink_count >= 3",
+      "ingredient_key": "2_coffee_cup_carriers_w_handle_200",
+      "quantity": 1,
+      "unit": "ea",
+      "enabled": true
+    }
+  ]
+}

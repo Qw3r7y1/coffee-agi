@@ -54,20 +54,26 @@ def backfill_bulk_parse() -> int:
 
         if pack and pack["pack_count"] > 1 and unit in ("case", "box", "pack", "bag", "ea"):
             # Case/box with N items inside -> cost per item
+            # Use unit_price (price per case) / pack_count (items per case)
+            # This is independent of qty (number of cases ordered)
             pack_count = pack["pack_count"]
             pack_text = f"{pack['pack_count']}x{pack['per_unit_size']}{pack['per_unit_unit']}"
             total_items = qty * pack_count
             base_unit = "unit"
-            if total_items > 0 and line_total > 0:
-                derived_cost = round(line_total / total_items, 5)
+            if unit_price and unit_price > 0:
+                derived_cost = round(unit_price / pack_count, 5)
+            elif line_total and line_total > 0 and qty > 0:
+                derived_cost = round(line_total / qty / pack_count, 5)
         elif count_from_name and count_from_name > 1 and unit in ("box", "case", "pack", "bag"):
             # Count from name (e.g., "Cup - 1,000")
             pack_count = count_from_name
             pack_text = f"{count_from_name} per {unit}"
             total_items = qty * count_from_name
             base_unit = "unit"
-            if total_items > 0 and line_total > 0:
-                derived_cost = round(line_total / total_items, 5)
+            if unit_price and unit_price > 0:
+                derived_cost = round(unit_price / count_from_name, 5)
+            elif line_total and line_total > 0 and qty > 0:
+                derived_cost = round(line_total / qty / count_from_name, 5)
         elif pack and pack["pack_count"] == 1:
             # Single item with weight (e.g., "5lb bag") -> cost per weight unit
             pack_count = 1
@@ -84,6 +90,16 @@ def backfill_bulk_parse() -> int:
             base_unit = unit
             total_items = qty
             derived_cost = unit_price  # already per unit
+        elif unit in ("case", "box", "pack", "bag") and qty > 1:
+            # Qty > 1 in a case = qty is the count of items in the case
+            pack_count = int(qty)
+            pack_text = f"{int(qty)} per {unit}"
+            total_items = qty
+            base_unit = "unit"
+            if line_total and line_total > 0:
+                derived_cost = round(line_total / qty, 5)
+            elif unit_price and unit_price > 0:
+                derived_cost = round(unit_price / qty, 5) if unit_price > qty else round(line_total / qty, 5) if line_total else None
         else:
             # Simple ea pricing
             pack_count = 1
@@ -307,6 +323,88 @@ def rebuild_ingredient_costs() -> int:
     conn.commit()
     conn.close()
     return updated
+
+
+def detect_price_inconsistencies() -> list[dict]:
+    """Find items where same vendor + same product has different unit_price values.
+
+    Returns list of inconsistencies with suggested correction.
+    """
+    conn = get_conn()
+    # Group by vendor + normalized_name, find those with >1 distinct unit_price
+    rows = conn.execute("""
+        SELECT i.vendor, ii.normalized_name, ii.unit, ii.quantity,
+               GROUP_CONCAT(DISTINCT CAST(ii.unit_price AS TEXT)) as prices,
+               COUNT(DISTINCT ROUND(ii.unit_price, 2)) as price_count,
+               ROUND(AVG(ii.derived_unit_cost), 5) as avg_derived,
+               COUNT(*) as row_count,
+               MAX(ii.line_total) as max_line_total
+        FROM invoice_items ii
+        JOIN invoices i ON ii.invoice_id = i.id
+        WHERE ii.unit_price > 0
+        GROUP BY i.vendor, ii.normalized_name, ii.unit
+        HAVING price_count > 1
+        ORDER BY i.vendor, ii.normalized_name
+    """).fetchall()
+    conn.close()
+
+    results = []
+    for r in rows:
+        prices = [float(p) for p in r["prices"].split(",")]
+        most_likely = r["max_line_total"]  # the case total is usually the correct price
+
+        results.append({
+            "vendor": r["vendor"],
+            "item": r["normalized_name"],
+            "unit": r["unit"],
+            "quantity": r["quantity"],
+            "prices_found": prices,
+            "price_count": r["price_count"],
+            "avg_derived": r["avg_derived"],
+            "rows": r["row_count"],
+            "suggested_unit_price": most_likely,
+            "issue": f"Same item has {r['price_count']} different unit prices: {r['prices']}"
+        })
+
+    return results
+
+
+def auto_fix_price_inconsistencies() -> dict:
+    """Auto-correct unit_price where same vendor+item has inconsistent prices.
+
+    Rule: when derived_unit_cost is consistent but unit_price varies,
+    set unit_price to line_total (the case/total price) for all rows.
+    """
+    conn = get_conn()
+    now = now_iso()
+
+    # Find groups with inconsistent unit_price but consistent derived
+    groups = conn.execute("""
+        SELECT LOWER(i.vendor) as vendor_lower, ii.normalized_name, ii.unit,
+               COUNT(DISTINCT ROUND(ii.unit_price, 2)) as price_count,
+               COUNT(DISTINCT ROUND(ii.derived_unit_cost, 4)) as derived_count,
+               MAX(ii.line_total) as correct_total
+        FROM invoice_items ii
+        JOIN invoices i ON ii.invoice_id = i.id
+        WHERE ii.unit_price > 0
+        GROUP BY vendor_lower, ii.normalized_name, ii.unit
+        HAVING price_count > 1 AND derived_count = 1
+    """).fetchall()
+
+    fixed = 0
+    for g in groups:
+        correct = g["correct_total"]
+        if correct and correct > 0:
+            conn.execute("""
+                UPDATE invoice_items SET unit_price = ?
+                WHERE normalized_name = ? AND unit = ?
+                  AND invoice_id IN (SELECT id FROM invoices WHERE LOWER(vendor) = ?)
+            """, (correct, g["normalized_name"], g["unit"], g["vendor_lower"]))
+            fixed += conn.execute("SELECT changes()").fetchone()[0]
+
+    conn.commit()
+    conn.close()
+    return {"groups_fixed": len(groups), "rows_updated": fixed}
 
 
 def validate_bulk_parse(item: dict) -> list[str]:

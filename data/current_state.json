@@ -51,21 +51,25 @@
     }
   },
   "sales_today": {
-    "freddo_espresso": 32,
+    "freddo_espresso": 34,
+    "cappuccino": 7,
     "butter_croissant": 6,
-    "cappuccino": 6,
     "latte": 5,
+    "cheese_pie": 3,
     "filter_coffee": 3,
     "freddo_cappuccino": 3,
     "homemade_spinach_pie": 3,
     "japanese_style_iced_coffee": 3,
     "loux": 3,
+    "matcha": 3,
     "nutella": 3,
     "americano": 2,
     "apple_turnover": 2,
-    "cheese_pie": 2,
+    "banana_chocolate_croissant": 2,
+    "coffee_bags": 2,
     "cold_brew": 2,
     "peinirli": 2,
+    "almond_croissant": 1,
     "bougatsa": 1,
     "chai": 1,
     "chocolate_chip_cookie": 1,
@@ -77,21 +81,25 @@
     "turkey_and_pesto": 1
   },
   "sales_amounts": {
-    "freddo_espresso": 16312,
+    "freddo_espresso": 17292,
+    "cappuccino": 3882,
     "butter_croissant": 3320,
-    "cappuccino": 3343,
     "latte": 3348,
+    "cheese_pie": 2123,
     "filter_coffee": 1062,
     "freddo_cappuccino": 1617,
     "homemade_spinach_pie": 2205,
     "japanese_style_iced_coffee": 1617,
     "loux": 1062,
+    "matcha": 2063,
     "nutella": 3740,
     "americano": 926,
     "apple_turnover": 1034,
-    "cheese_pie": 1415,
+    "banana_chocolate_croissant": 1143,
+    "coffee_bags": 4000,
     "cold_brew": 1224,
     "peinirli": 1732,
+    "almond_croissant": 517,
     "bougatsa": 735,
     "chai": 571,
     "chocolate_chip_cookie": 463,
@@ -107,8 +115,15 @@
       "name": "freddo_espresso",
       "display": "Freddo Espresso",
       "category": "drink",
-      "qty": 32,
-      "revenue_cents": 16312
+      "qty": 34,
+      "revenue_cents": 17292
+    },
+    {
+      "name": "cappuccino",
+      "display": "Cappuccino",
+      "category": "drink",
+      "qty": 7,
+      "revenue_cents": 3882
     },
     {
       "name": "butter_croissant",
@@ -118,18 +133,18 @@
       "revenue_cents": 3320
     },
     {
-      "name": "cappuccino",
-      "display": "Cappuccino",
-      "category": "drink",
-      "qty": 6,
-      "revenue_cents": 3343
-    },
-    {
       "name": "latte",
       "display": "Latte",
       "category": "drink",
       "qty": 5,
       "revenue_cents": 3348
+    },
+    {
+      "name": "cheese_pie",
+      "display": "Cheese Pie",
+      "category": "other",
+      "qty": 3,
+      "revenue_cents": 2123
     },
     {
       "name": "filter_coffee",
@@ -167,6 +182,13 @@
       "revenue_cents": 1062
     },
     {
+      "name": "matcha",
+      "display": "Matcha",
+      "category": "other",
+      "qty": 3,
+      "revenue_cents": 2063
+    },
+    {
       "name": "nutella",
       "display": "Nutella",
       "category": "other",
@@ -188,11 +210,18 @@
       "revenue_cents": 1034
     },
     {
-      "name": "cheese_pie",
-      "display": "Cheese Pie",
+      "name": "banana_chocolate_croissant",
+      "display": "Banana Chocolate Croissant",
       "category": "other",
       "qty": 2,
-      "revenue_cents": 1415
+      "revenue_cents": 1143
+    },
+    {
+      "name": "coffee_bags",
+      "display": "COFFEE 12oz bags",
+      "category": "other",
+      "qty": 2,
+      "revenue_cents": 4000
     },
     {
       "name": "cold_brew",
@@ -207,6 +236,13 @@
       "category": "other",
       "qty": 2,
       "revenue_cents": 1732
+    },
+    {
+      "name": "almond_croissant",
+      "display": "Almond croissant",
+      "category": "other",
+      "qty": 1,
+      "revenue_cents": 517
     },
     {
       "name": "bougatsa",
@@ -272,11 +308,11 @@
       "revenue_cents": 898
     }
   ],
-  "raw_order_count": 46,
+  "raw_order_count": 52,
   "business_date": "2026-03-25",
   "location_id": "LNZ6BS56ANE9F",
   "source": "sqlite",
-  "snapshot_generated_at": "2026-03-25T20:06:41.891144+00:00",
-  "last_square_sync_at": "2026-03-25T20:06:41.876290+00:00",
+  "snapshot_generated_at": "2026-03-25T22:17:46.927530+00:00",
+  "last_square_sync_at": "2026-03-25T22:17:46.912450+00:00",
   "freshness_seconds": 0
 }

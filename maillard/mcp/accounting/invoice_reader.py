@@ -16,7 +16,8 @@ from pathlib import Path
 from loguru import logger
 
 EXTRACTION_PROMPT = """You are reading a real invoice document for Maillard Coffee Roasters.
-Extract ALL data you can see. Return ONLY valid JSON, no markdown, no explanation.
+Extract ALL data from ALL pages. If this is a multi-page invoice, combine all line items into one list.
+Return ONLY valid JSON, no markdown, no explanation.
 
 IMPORTANT: Many invoices have HANDWRITTEN corrections — crossed-out quantities,
 handwritten prices, circled amounts, arrows changing values, or pen annotations.
@@ -61,12 +62,15 @@ Rules:
 - Return ONLY the JSON object, nothing else"""
 
 
-def _pdf_to_images(pdf_path: str, max_pages: int = 4) -> list[tuple[bytes, str]]:
+def _pdf_to_images(pdf_path: str, max_pages: int = 8) -> list[tuple[bytes, str]]:
     """Convert PDF pages to PNG images using PyMuPDF. Returns list of (bytes, media_type)."""
     import fitz
 
     images = []
     doc = fitz.open(pdf_path)
+    total_pages = len(doc)
+    if total_pages > max_pages:
+        logger.warning(f"[INVOICE-READER] PDF has {total_pages} pages, processing first {max_pages}")
     for i, page in enumerate(doc):
         if i >= max_pages:
             break
@@ -143,10 +147,15 @@ async def read_invoice_file(file_path: str) -> dict:
     except Exception as e:
         return {"error": f"Failed to read file: {e}"}
 
-    # Add the extraction prompt
+    # Add page count hint + extraction prompt
+    page_count = len(content_blocks)
+    if page_count > 1:
+        content_blocks.insert(0, {"type": "text", "text": f"This invoice has {page_count} pages. Extract ALL line items from ALL pages into one combined result. Do not skip any page."})
+
     content_blocks.append({"type": "text", "text": EXTRACTION_PROMPT})
 
-    # Call Claude Vision
+    # Call Claude Vision — use higher max_tokens for multi-page invoices
+    max_tok = min(4096 + (page_count - 1) * 2048, 8192)
     try:
         import anthropic
 
@@ -154,10 +163,15 @@ async def read_invoice_file(file_path: str) -> dict:
         response = await asyncio.to_thread(
             client.messages.create,
             model="claude-sonnet-4-20250514",
-            max_tokens=2048,
+            max_tokens=max_tok,
             messages=[{"role": "user", "content": content_blocks}],
         )
         raw_text = response.content[0].text.strip()
+
+        # Check if response was truncated
+        if response.stop_reason == "max_tokens":
+            logger.warning(f"[INVOICE-READER] Response truncated at {max_tok} tokens for {path.name}")
+
     except Exception as e:
         logger.error(f"[INVOICE-READER] Claude Vision call failed: {e}")
         return {"error": f"Vision API failed: {e}"}

@@ -129,6 +129,14 @@ def migrate() -> dict:
         inv_rows = old.execute("SELECT * FROM invoices").fetchall()
         id_map = {}  # old id -> new id
         for inv in inv_rows:
+            # Skip duplicates
+            existing = conn.execute(
+                "SELECT id FROM invoices WHERE LOWER(vendor)=LOWER(?) AND invoice_number=?",
+                (inv["vendor"], inv["invoice_number"])
+            ).fetchone()
+            if existing:
+                id_map[inv["id"]] = existing["id"]
+                continue
             cur = conn.execute("""
                 INSERT INTO invoices (vendor, invoice_date, invoice_number, total, source_file, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)

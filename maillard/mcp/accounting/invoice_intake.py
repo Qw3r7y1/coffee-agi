@@ -293,6 +293,17 @@ def parse_pack_size(raw: str) -> dict | None:
         {"pack_count": int, "per_unit_size": float, "per_unit_unit": str}
         or None if no pattern matched.
     """
+    # Pattern: N Pcs or N pcs (e.g., "56 Pcs", "(56 Pcs-", "6 Pcs")
+    m = re.search(r"(\d+)\s*pcs\b", raw, re.IGNORECASE)
+    if m:
+        return {"pack_count": int(m.group(1)), "per_unit_size": 1, "per_unit_unit": "ea"}
+
+    # Pattern: parenthetical weight like (1106G), (1KG), (500g), (250ML)
+    m = re.search(r"\((\d+\.?\d*)\s*(g|kg|oz|lb|ml|l)\)", raw, re.IGNORECASE)
+    if m:
+        return {"pack_count": 1, "per_unit_size": float(m.group(1)),
+                "per_unit_unit": normalize_unit(m.group(2))}
+
     # Pattern: N/N unit  (e.g., 4/1 gal, 6/5 lb) — only recognized units
     _KNOWN_UNITS_RE = r"(?:lb|lbs|kg|oz|gal|gallon|gallons|L|liter|liters|ml|qt|quart)\b"
     m = re.search(r"(\d+)\s*/\s*(\d+\.?\d*)\s*(" + _KNOWN_UNITS_RE + r")", raw, re.IGNORECASE)
@@ -528,19 +539,30 @@ def reconcile_line_total(
 
 def _extract_count_from_name(raw_name: str) -> int | None:
     """Extract item count from name like '16 oz Clear Plastic Cup - 1,000' or 'Napkins 500ct'."""
-    # Pattern: "- 1,000" or "- 600" or "- 200" at end
+    # Skip if "Pcs" already present (handled by parse_pack_size)
+    if re.search(r"\d+\s*pcs\b", raw_name, re.IGNORECASE):
+        return None
+
+    # Pattern: "- 1,000" or "- 600" at end (but not 5+ digit product codes)
     m = re.search(r"-\s*([\d,]+)\s*$", raw_name)
     if m:
-        return int(m.group(1).replace(",", ""))
-    # Pattern: "1,000 ct" or "500ct" or "(1000)"
+        val = int(m.group(1).replace(",", ""))
+        if 10 <= val <= 5000:
+            return val
+
+    # Pattern: "1,000 ct" or "500ct"
     m = re.search(r"([\d,]+)\s*ct\b", raw_name, re.IGNORECASE)
     if m:
         return int(m.group(1).replace(",", ""))
+
+    # Pattern: "(1000)" — parenthetical count, not product code
     m = re.search(r"\(([\d,]+)\)", raw_name)
     if m:
         val = int(m.group(1).replace(",", ""))
-        if val >= 10:  # likely a count, not a size
+        after = raw_name[m.end():m.end()+1] if m.end() < len(raw_name) else ""
+        if 10 <= val <= 5000 and not re.search(r"[a-zA-Z]", after):
             return val
+
     return None
 
 

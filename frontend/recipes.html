@@ -171,8 +171,10 @@ function render() {
 }
 
 function cardHTML(d) {
-  const ings=d.ingredients||[], ready=isReady(d), ro=d.status==='approved'||d.status==='rejected';
-  const bc = d.status==='approved'?'badge-approved':d.status==='rejected'?'badge-rejected':'badge-draft';
+  const ings=d.ingredients||[], ready=isReady(d);
+  const ro = d.status==='rejected';  // only rejected is read-only
+  const isApproved = d.status==='approved';
+  const bc = isApproved?'badge-approved':d.status==='rejected'?'badge-rejected':'badge-draft';
   const cc = costCache[d.recipe_key];
   const costLabel = cc ? `$${cc.total_cost.toFixed(2)}` : '';
   return `<div class="mod-card">
@@ -191,11 +193,13 @@ function cardHTML(d) {
       </table>
       ${costSummaryHTML(d.recipe_key)}
       <div class="mod-actions">
-        ${ro?'':`<button class="btn btn-add" onclick="addIng('${d.recipe_key}')">+ Add</button>
-        <button class="btn btn-save" onclick="save('${d.recipe_key}')">Save</button>
-        <button class="btn btn-approve${ready?'':'" disabled'}" onclick="approve('${d.recipe_key}')">Approve</button>
-        <button class="btn btn-reject" onclick="reject('${d.recipe_key}')">Reject</button>`}
-        <span class="recipe-note">${ro?(d.status==='approved'?'In recipes.json':'Rejected'):ready?'Ready to approve':'Fill quantities'}</span>
+        ${ro?'':`
+          <button class="btn btn-add" onclick="addIng('${d.recipe_key}')">+ Add</button>
+          <button class="btn btn-save" onclick="${isApproved?`saveApproved('${d.recipe_key}')`:`save('${d.recipe_key}')`}">Save</button>
+          ${isApproved?'':`<button class="btn btn-approve${ready?'':'" disabled'}" onclick="approve('${d.recipe_key}')">Approve</button>`}
+          ${isApproved?'':`<button class="btn btn-reject" onclick="reject('${d.recipe_key}')">Reject</button>`}
+        `}
+        <span class="recipe-note">${ro?'Rejected':isApproved?'Approved - editable':'Fill quantities'}</span>
       </div>
     </div>
   </div>`;
@@ -357,6 +361,25 @@ async function save(key) {
     const res = await fetch(API+'/api/recipes/update/'+key, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ingredients:d.ingredients})});
     if(!res.ok) throw new Error((await res.json()).detail||'Save failed');
     toast('Saved: '+(d.display_name||key), true); renderTabs();
+  } catch(e) { toast(e.message, false); }
+}
+
+async function saveApproved(key) {
+  const d = allDrafts.find(x=>x.recipe_key===key);
+  if(!d) return;
+  // Build clean ingredient list
+  const ings = (d.ingredients||[]).map(i => ({
+    ingredient_key: i.ingredient_key, quantity: i.quantity, unit: i.unit || 'ea'
+  })).filter(i => i.ingredient_key);
+  try {
+    const res = await fetch(API+'/api/recipes/update/'+key, {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ingredients: ings})
+    });
+    if(!res.ok) throw new Error((await res.json()).detail||'Save failed');
+    const data = await res.json();
+    toast('Saved: '+(d.display_name||key)+(data.cost?' ($'+data.cost.total_cost.toFixed(2)+')':''), true);
+    fetchCost(key);
   } catch(e) { toast(e.message, false); }
 }
 

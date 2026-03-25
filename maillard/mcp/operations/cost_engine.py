@@ -127,7 +127,7 @@ def convert_units(quantity: float, from_unit: str, to_unit: str) -> float | None
 # INGREDIENT COST LOOKUP
 # ═══════════════════════════════════════════════════════════════════════════
 
-def get_ingredient_cost(ingredient_key: str) -> dict:
+def get_ingredient_cost(ingredient_key: str, _depth: int = 0) -> dict:
     """Look up cost for an ingredient using the canonical ingredient resolver.
 
     Priority:
@@ -156,13 +156,51 @@ def get_ingredient_cost(ingredient_key: str) -> dict:
     except Exception:
         pass
 
-    # 2. Fallback to costs.json (manual per-unit costs)
+    # 2. Check if it's another recipe (recipe-as-ingredient)
+    try:
+        recipes = _load("recipes.json")
+        if ingredient_key in recipes:
+            # Calculate that recipe's cost and use it
+            sub_cost = _calculate_recipe_cost_no_recurse(ingredient_key, _depth=_depth)
+            if sub_cost and sub_cost > 0:
+                return {
+                    "unit_cost": sub_cost,
+                    "unit": "ea",
+                    "source": "recipe",
+                    "resolved_key": ingredient_key,
+                    "match_type": "sub_recipe",
+                }
+    except Exception:
+        pass
+
+    # 3. Fallback to costs.json (manual per-unit costs)
     manual = _load("costs.json")
     if ingredient_key in manual:
         unit = _infer_unit_from_key(ingredient_key)
         return {"unit_cost": manual[ingredient_key], "unit": unit, "source": "manual"}
 
     return {"unit_cost": 0, "unit": "", "source": "none"}
+
+
+def _calculate_recipe_cost_no_recurse(recipe_key: str, _depth: int = 0) -> float | None:
+    """Calculate a recipe's total cost for use as a sub-ingredient. Max depth 3 to prevent loops."""
+    if _depth > 3:
+        return None
+    recipes = _load("recipes.json")
+    if recipe_key not in recipes:
+        return None
+    ingredients = recipes[recipe_key]
+    total = 0
+    for ing_key, quantity in ingredients.items():
+        if quantity is None or quantity == 0:
+            continue
+        # Prevent infinite recursion: don't let sub-recipe look up itself
+        if ing_key == recipe_key:
+            continue
+        unit = _infer_unit_from_key(ing_key)
+        cost_info = get_ingredient_cost(ing_key, _depth=_depth + 1)
+        total += float(quantity) * cost_info["unit_cost"]
+    return round(total, 4) if total > 0 else None
 
 
 def _lookup_invoice_cost(ingredient_key: str) -> dict | None:

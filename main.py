@@ -110,6 +110,7 @@ def _build_sales_response() -> dict:
 # ── Recipe builder endpoints ──────────────────────────────────────────────────
 
 @app.get("/api/recipes/unmapped", tags=["Recipes"])
+@app.get("/missing-recipes", tags=["Recipes"])
 def recipe_unmapped():
     """Return sold items with no approved recipe."""
     from maillard.recipe_builder import find_unmapped_sales_items

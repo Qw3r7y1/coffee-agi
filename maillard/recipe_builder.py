@@ -471,12 +471,27 @@ def approve_recipe(recipe_key: str) -> dict | None:
         if ing.get("needs_review"):
             return {"error": f"Ingredient '{ing['ingredient_key']}' still needs review"}
 
-    # Build the recipe entry for recipes.json
+    # Write to coffee_agi.db (primary) and recipes.json (fallback)
     recipe_entry = {}
+    db_ingredients = []
     for ing in target["ingredients"]:
         recipe_entry[ing["ingredient_key"]] = ing["quantity"]
+        db_ingredients.append({
+            "ingredient_key": ing["ingredient_key"],
+            "quantity": ing["quantity"],
+            "unit": ing.get("unit", "ea"),
+        })
 
-    # Update recipes.json
+    # DB write
+    try:
+        from app.data_access.recipes_repo import create_recipe, replace_recipe_ingredients, approve_recipe as db_approve
+        create_recipe(recipe_key, target.get("display_name", recipe_key), status="approved")
+        replace_recipe_ingredients(recipe_key, db_ingredients)
+        db_approve(recipe_key)
+    except Exception:
+        pass  # DB write is best-effort; JSON is guaranteed below
+
+    # JSON fallback write
     recipes = _load_json(_RECIPES_FILE)
     recipes[recipe_key] = recipe_entry
     _save_json(_RECIPES_FILE, recipes)
@@ -612,6 +627,14 @@ def enforce_recipe_coverage() -> dict:
 # ═══════════════════════════════════════════════════════════════════════════
 
 def _load_approved_recipes() -> dict:
+    """Load approved recipes. DB first, JSON fallback."""
+    try:
+        from app.data_access.recipes_repo import get_all_recipes_dict
+        data = get_all_recipes_dict()
+        if data:
+            return data
+    except Exception:
+        pass
     return _load_json(_RECIPES_FILE)
 
 

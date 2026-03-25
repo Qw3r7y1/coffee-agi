@@ -51,14 +51,14 @@
     }
   },
   "sales_today": {
-    "freddo_espresso": 27,
-    "butter_croissant": 4,
-    "cappuccino": 4,
+    "freddo_espresso": 30,
+    "butter_croissant": 6,
+    "cappuccino": 5,
     "filter_coffee": 3,
+    "latte": 3,
     "cheese_pie": 2,
     "homemade_spinach_pie": 2,
     "japanese_style_iced_coffee": 2,
-    "latte": 2,
     "americano": 1,
     "bougatsa": 1,
     "chai": 1,
@@ -70,14 +70,14 @@
     "theoni": 1
   },
   "sales_amounts": {
-    "freddo_espresso": 13862,
-    "butter_croissant": 1959,
-    "cappuccino": 2265,
+    "freddo_espresso": 15332,
+    "butter_croissant": 3320,
+    "cappuccino": 2804,
     "filter_coffee": 1062,
+    "latte": 2096,
     "cheese_pie": 1415,
     "homemade_spinach_pie": 1470,
     "japanese_style_iced_coffee": 1078,
-    "latte": 1361,
     "americano": 463,
     "bougatsa": 735,
     "chai": 571,
@@ -93,22 +93,22 @@
       "name": "freddo_espresso",
       "display": "Freddo Espresso",
       "category": "drink",
-      "qty": 27,
-      "revenue_cents": 13862
+      "qty": 30,
+      "revenue_cents": 15332
     },
     {
       "name": "butter_croissant",
       "display": "Butter croissant",
       "category": "other",
-      "qty": 4,
-      "revenue_cents": 1959
+      "qty": 6,
+      "revenue_cents": 3320
     },
     {
       "name": "cappuccino",
       "display": "Cappuccino",
       "category": "drink",
-      "qty": 4,
-      "revenue_cents": 2265
+      "qty": 5,
+      "revenue_cents": 2804
     },
     {
       "name": "filter_coffee",
@@ -116,6 +116,13 @@
       "category": "drink",
       "qty": 3,
       "revenue_cents": 1062
+    },
+    {
+      "name": "latte",
+      "display": "Latte",
+      "category": "drink",
+      "qty": 3,
+      "revenue_cents": 2096
     },
     {
       "name": "cheese_pie",
@@ -137,13 +144,6 @@
       "category": "other",
       "qty": 2,
       "revenue_cents": 1078
-    },
-    {
-      "name": "latte",
-      "display": "Latte",
-      "category": "drink",
-      "qty": 2,
-      "revenue_cents": 1361
     },
     {
       "name": "americano",
@@ -209,11 +209,11 @@
       "revenue_cents": 245
     }
   ],
-  "raw_order_count": 29,
+  "raw_order_count": 33,
   "business_date": "2026-03-25",
   "location_id": "LNZ6BS56ANE9F",
   "source": "sqlite",
-  "snapshot_generated_at": "2026-03-25T15:23:34.060676+00:00",
-  "last_square_sync_at": "2026-03-25T15:23:34.045650+00:00",
+  "snapshot_generated_at": "2026-03-25T17:14:13.511459+00:00",
+  "last_square_sync_at": "2026-03-25T17:14:13.497420+00:00",
   "freshness_seconds": 0
 }

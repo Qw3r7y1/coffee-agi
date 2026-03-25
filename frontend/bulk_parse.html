@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Maillard - Bulk Parser Review</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#08080a;--surface:#111114;--surface-2:#19191d;--surface-3:#222228;--border:#2a2a32;--gold:#c49a2a;--gold-dim:rgba(196,154,42,.12);--white:#f2f2f5;--text:#d8d8e0;--muted:#6b6b78;--green:#34d399;--red:#ef4444;--blue:#60a5fa;--yellow:#fbbf24;--orange:#f97316}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--surface)}
+.header h1{font-size:18px;color:var(--white);font-weight:700}
+.header-links{display:flex;gap:12px}
+.header-links a{color:var(--muted);text-decoration:none;font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:4px}
+.header-links a:hover{color:var(--gold);border-color:var(--gold)}
+.stats-bar{display:flex;gap:20px;padding:12px 24px;background:var(--surface-2);border-bottom:1px solid var(--border);font-size:12px;flex-wrap:wrap}
+.stat{display:flex;gap:5px;align-items:center}.stat-val{color:var(--white);font-weight:600}.stat-label{color:var(--muted)}
+.controls{display:flex;gap:10px;padding:12px 24px;align-items:center;flex-wrap:wrap}
+.controls input,.controls select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:4px;font-size:12px;font-family:inherit}
+.btn{padding:5px 12px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:500;border:1px solid;font-family:inherit}
+.btn-gold{background:var(--gold-dim);color:var(--gold);border-color:var(--gold)}.btn-gold:hover{background:var(--gold);color:#000}
+.btn-save{background:rgba(96,165,250,.12);color:var(--blue);border-color:var(--blue)}.btn-save:hover{background:var(--blue);color:#000}
+.btn-approve{background:rgba(52,211,153,.12);color:var(--green);border-color:var(--green)}.btn-approve:hover{background:var(--green);color:#000}
+.btn-sm{padding:3px 8px;font-size:10px}
+.content{padding:0 24px 40px}
+.toast{position:fixed;top:16px;right:16px;padding:10px 18px;border-radius:6px;font-size:13px;font-weight:500;z-index:200;opacity:0;transition:opacity .3s}
+.toast.show{opacity:1}.toast.ok{background:#064e3b;color:var(--green);border:1px solid var(--green)}.toast.err{background:#450a0a;color:var(--red);border:1px solid var(--red)}
+.empty{text-align:center;padding:40px;color:var(--muted)}
+
+/* Table */
+.review-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:12px}
+.review-table th{text-align:left;color:var(--muted);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;position:sticky;top:0;background:var(--bg)}
+.review-table td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+.review-table tr:hover{background:var(--surface-2)}
+.review-table tr.expanded{background:var(--surface)}
+.r-num{text-align:right;font-variant-numeric:tabular-nums}
+.conf-high{color:var(--green)}.conf-medium{color:var(--yellow)}.conf-low{color:var(--orange)}.conf-none{color:var(--red)}
+.badge-review{background:rgba(249,115,22,.12);color:var(--orange);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600}
+.badge-ok{background:rgba(52,211,153,.08);color:var(--green);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600}
+.warn-text{color:var(--orange);font-size:10px}
+
+/* Detail panel */
+.detail{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 16px;margin:6px 0}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.detail-field label{font-size:10px;color:var(--muted);display:block;margin-bottom:2px}
+.detail-field input,.detail-field select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:3px;font-size:12px;font-family:inherit;width:100%}
+.detail-field input:focus{border-color:var(--gold);outline:none}
+.detail-summary{margin-top:8px;padding:8px;background:var(--surface-2);border-radius:4px;font-size:12px;color:var(--white)}
+.detail-comparison{font-size:11px;color:var(--muted);margin-top:6px}
+.detail-comparison .dev-bad{color:var(--red);font-weight:600}
+.detail-comparison .dev-ok{color:var(--green)}
+.detail-warns{margin-top:6px}
+.detail-actions{display:flex;gap:6px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Bulk Parser Review</h1>
+  <div class="header-links"><a href="/ui">Agent</a><a href="/recipes">Recipes</a><a href="/modifiers">Modifiers</a></div>
+</div>
+<div class="stats-bar" id="stats-bar"></div>
+<div class="controls">
+  <select id="filter-mode" onchange="render()">
+    <option value="queue">Needs Review</option>
+    <option value="all">All Items</option>
+  </select>
+  <input type="text" id="search" placeholder="Search..." oninput="render()"/>
+  <button class="btn btn-gold" onclick="backfill()">Recalculate All</button>
+</div>
+<div class="content" id="content"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = location.origin;
+let items = [], allItems = [], openId = null;
+
+async function load() {
+  try {
+    const [qRes, aRes] = await Promise.all([
+      fetch(API+'/api/bulk-parse/queue'),
+      fetch(API+'/api/bulk-parse/all')
+    ]);
+    items = await qRes.json();
+    allItems = await aRes.json();
+    renderStats(); render();
+  } catch(e) { document.getElementById('content').innerHTML='<div class="empty">Failed to load</div>'; }
+}
+
+function renderStats() {
+  const total = allItems.length;
+  const needsReview = items.length;
+  const parsed = allItems.filter(i=>i.derived_unit_cost).length;
+  const high = allItems.filter(i=>i.confidence==='high').length;
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat"><span class="stat-val">${total}</span><span class="stat-label">Total Items</span></div>
+    <div class="stat"><span class="stat-val">${needsReview}</span><span class="stat-label">Needs Review</span></div>
+    <div class="stat"><span class="stat-val">${parsed}</span><span class="stat-label">Parsed</span></div>
+    <div class="stat"><span class="stat-val">${high}</span><span class="stat-label">High Confidence</span></div>`;
+}
+
+function render() {
+  const mode = document.getElementById('filter-mode').value;
+  const search = document.getElementById('search').value.toLowerCase();
+  let data = mode === 'queue' ? items : allItems;
+  if (search) data = data.filter(r => (r.raw_name||'').toLowerCase().includes(search) || (r.vendor||'').toLowerCase().includes(search));
+  const el = document.getElementById('content');
+  if (!data.length) { el.innerHTML='<div class="empty">No items</div>'; return; }
+  el.innerHTML = `<table class="review-table">
+    <tr><th>Vendor</th><th>Date</th><th>Item</th><th>Qty</th><th>Unit</th><th>Unit Price</th><th>Pack</th><th>Derived/ea</th><th>Conf</th><th>Status</th></tr>
+    ${data.map(r => rowHTML(r)).join('')}
+  </table>`;
+}
+
+function rowHTML(r) {
+  const confCls = 'conf-'+(r.confidence||'none');
+  const derived = r.derived_unit_cost ? '$'+r.derived_unit_cost.toFixed(4) : '--';
+  const status = r.review_required ? '<span class="badge-review">review</span>' : '<span class="badge-ok">ok</span>';
+  const pack = r.pack_size_text || (r.pack_count ? r.pack_count+'x' : '--');
+  const isOpen = openId === r.id;
+  return `<tr class="${isOpen?'expanded':''}" onclick="toggle(${r.id})" style="cursor:pointer">
+    <td>${r.vendor||''}</td><td>${(r.invoice_date||'').slice(0,10)}</td>
+    <td title="${r.raw_name}">${(r.normalized_name||r.raw_name||'').slice(0,40)}</td>
+    <td class="r-num">${r.quantity||''}</td><td>${r.unit||''}</td>
+    <td class="r-num">$${(r.unit_price||0).toFixed(2)}</td>
+    <td>${pack}</td><td class="r-num">${derived}</td>
+    <td><span class="${confCls}">${r.confidence||'?'}</span></td>
+    <td>${status}</td>
+  </tr>${isOpen ? '<tr><td colspan="10">'+detailHTML(r)+'</td></tr>' : ''}`;
+}
+
+function detailHTML(r) {
+  const summary = r.derived_unit_cost && r.pack_count
+    ? `$${(r.unit_price||0).toFixed(2)} / ${r.unit||'ea'}${r.pack_count>1?' of '+r.pack_count:''} = $${r.derived_unit_cost.toFixed(5)} per ${r.base_unit||'unit'}`
+    : 'Cannot compute derived cost';
+  return `<div class="detail" onclick="event.stopPropagation()">
+    <div class="detail-grid">
+      <div class="detail-field"><label>Normalized Name</label><input value="${r.normalized_name||''}" onchange="editField(${r.id},'normalized_name',this.value)"/></div>
+      <div class="detail-field"><label>Quantity</label><input type="number" step="any" value="${r.quantity||''}" onchange="editField(${r.id},'quantity',parseFloat(this.value))"/></div>
+      <div class="detail-field"><label>Unit</label><input value="${r.unit||''}" onchange="editField(${r.id},'unit',this.value)"/></div>
+      <div class="detail-field"><label>Pack Count</label><input type="number" value="${r.pack_count||''}" onchange="editField(${r.id},'pack_count',parseInt(this.value))"/></div>
+      <div class="detail-field"><label>Base Unit</label><input value="${r.base_unit||''}" onchange="editField(${r.id},'base_unit',this.value)"/></div>
+      <div class="detail-field"><label>Total Base Units</label><input type="number" step="any" value="${r.total_base_units||''}" onchange="editField(${r.id},'total_base_units',parseFloat(this.value))"/></div>
+      <div class="detail-field"><label>Derived Unit Cost</label><input type="number" step="any" value="${r.derived_unit_cost||''}" onchange="editField(${r.id},'derived_unit_cost',parseFloat(this.value))"/></div>
+      <div class="detail-field"><label>Confidence</label>
+        <select onchange="editField(${r.id},'confidence',this.value)">
+          <option value="high"${r.confidence==='high'?' selected':''}>high</option>
+          <option value="medium"${r.confidence==='medium'?' selected':''}>medium</option>
+          <option value="low"${r.confidence==='low'?' selected':''}>low</option>
+        </select>
+      </div>
+    </div>
+    <div class="detail-summary">${summary}</div>
+    <div class="detail-comparison" id="compare-${r.id}"></div>
+    <div class="detail-actions">
+      <button class="btn btn-save btn-sm" onclick="saveItem(${r.id})">Save</button>
+      <button class="btn btn-sm" style="border-color:var(--yellow);color:var(--yellow)" onclick="recalcItem(${r.id})">Recalculate</button>
+      <button class="btn btn-approve btn-sm" onclick="approveItem(${r.id})">Approve</button>
+    </div>
+  </div>`;
+}
+
+function toggle(id) {
+  openId = openId === id ? null : id;
+  render();
+  if (openId) loadComparison(id);
+}
+
+async function loadComparison(id) {
+  const item = allItems.find(r=>r.id===id) || items.find(r=>r.id===id);
+  if (!item || !item.normalized_name) return;
+  try {
+    const res = await fetch(API+'/api/bulk-parse/history/'+encodeURIComponent(item.normalized_name));
+    const hist = await res.json();
+    const el = document.getElementById('compare-'+id);
+    if (!el || !hist.median) return;
+    const dev = item.derived_unit_cost ? Math.round((item.derived_unit_cost - hist.median) / hist.median * 100) : null;
+    const devCls = dev !== null && Math.abs(dev) > 50 ? 'dev-bad' : 'dev-ok';
+    el.innerHTML = `Recent median: $${hist.median.toFixed(5)} (${hist.count} records) ${dev!==null?`| Deviation: <span class="${devCls}">${dev>0?'+':''}${dev}%</span>`:''}`;
+  } catch(e) {}
+}
+
+// Edits stored locally until save
+let edits = {};
+function editField(id, field, val) {
+  if (!edits[id]) edits[id] = {};
+  edits[id][field] = val;
+}
+
+async function saveItem(id) {
+  if (!edits[id]) { toast('No changes', true); return; }
+  try {
+    const res = await fetch(API+'/api/bulk-parse/'+id, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(edits[id])});
+    if (!res.ok) throw new Error('Save failed');
+    delete edits[id];
+    toast('Saved', true); await load();
+  } catch(e) { toast(e.message, false); }
+}
+
+async function recalcItem(id) {
+  // Save first if there are edits
+  if (edits[id]) await saveItem(id);
+  try {
+    const res = await fetch(API+'/api/bulk-parse/'+id+'/recalculate', {method:'POST'});
+    if (!res.ok) throw new Error('Recalc failed');
+    toast('Recalculated', true); await load();
+  } catch(e) { toast(e.message, false); }
+}
+
+async function approveItem(id) {
+  if (edits[id]) await saveItem(id);
+  try {
+    const res = await fetch(API+'/api/bulk-parse/'+id+'/approve', {method:'POST'});
+    if (!res.ok) throw new Error('Approve failed');
+    toast('Approved', true); await load();
+  } catch(e) { toast(e.message, false); }
+}
+
+async function backfill() {
+  toast('Recalculating all...', true);
+  try {
+    // Call migrate + backfill via a quick endpoint
+    const res = await fetch(API+'/api/bulk-parse/backfill', {method:'POST'});
+    if (!res.ok) throw new Error('Backfill failed');
+    const d = await res.json();
+    toast('Updated '+d.updated+' items', true);
+    await load();
+  } catch(e) { toast(e.message, false); }
+}
+
+function toast(msg, ok) {
+  const el=document.getElementById('toast');el.textContent=msg;el.className='toast show '+(ok?'ok':'err');
+  setTimeout(()=>el.className='toast',3000);
+}
+
+load();
+</script>
+</body>
+</html>

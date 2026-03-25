@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Maillard — Modifier Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #08080a; --surface: #111114; --surface-2: #19191d; --surface-3: #222228;
+  --border: #2a2a32; --gold: #c49a2a; --gold-dim: rgba(196,154,42,0.12);
+  --white: #f2f2f5; --text: #d8d8e0; --muted: #6b6b78; --green: #34d399;
+  --red: #ef4444; --blue: #60a5fa; --yellow: #fbbf24; --orange: #f97316;
+}
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.header h1 { font-size: 18px; color: var(--white); font-weight: 700; }
+.header-links { display: flex; gap: 12px; }
+.header-links a { color: var(--muted); text-decoration: none; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; }
+.header-links a:hover { color: var(--gold); border-color: var(--gold); }
+.controls { display: flex; gap: 10px; padding: 14px 24px; align-items: center; }
+.controls input { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 4px; font-size: 12px; font-family: inherit; }
+.btn { padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; border: 1px solid; font-family: inherit; }
+.btn-gold { background: var(--gold-dim); color: var(--gold); border-color: var(--gold); }
+.btn-gold:hover { background: var(--gold); color: #000; }
+.btn-save { background: rgba(96,165,250,0.12); color: var(--blue); border-color: var(--blue); }
+.btn-save:hover { background: var(--blue); color: #000; }
+.btn-del { background: rgba(239,68,68,0.08); color: var(--red); border-color: rgba(239,68,68,0.3); }
+.btn-del:hover { background: var(--red); color: #000; }
+.btn-add { background: var(--surface-3); color: var(--muted); border-color: var(--border); }
+.btn-add:hover { color: var(--text); border-color: var(--text); }
+.btn-rm { background: none; border: none; color: var(--red); cursor: pointer; font-size: 14px; padding: 2px 6px; }
+.content { padding: 0 24px 40px; }
+.toast { position: fixed; top: 16px; right: 16px; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 500; z-index: 100; opacity: 0; transition: opacity 0.3s; }
+.toast.show { opacity: 1; }
+.toast.ok { background: #064e3b; color: var(--green); border: 1px solid var(--green); }
+.toast.err { background: #450a0a; color: var(--red); border: 1px solid var(--red); }
+
+.mod-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-top: 14px; overflow: hidden; }
+.mod-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; }
+.mod-header:hover { background: var(--surface-2); }
+.mod-name { font-weight: 600; color: var(--white); font-size: 14px; }
+.mod-meta { display: flex; gap: 10px; font-size: 11px; color: var(--muted); align-items: center; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.badge-add { background: rgba(52,211,153,0.12); color: var(--green); }
+.badge-replace { background: rgba(96,165,250,0.12); color: var(--blue); }
+.badge-size_upgrade { background: rgba(251,191,36,0.12); color: var(--yellow); }
+
+.mod-body { display: none; padding: 14px 16px; }
+.mod-body.open { display: block; }
+
+.field-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+.field-row label { font-size: 11px; color: var(--muted); width: 80px; text-align: right; flex-shrink: 0; }
+.field-row input, .field-row select { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 5px 8px; border-radius: 3px; font-size: 12px; font-family: inherit; }
+.field-row input:focus, .field-row select:focus { border-color: var(--gold); outline: none; }
+
+.section-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 12px 0 6px; font-weight: 600; }
+
+.ing-row { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
+.ing-row input { width: 140px; }
+.ing-row input[type="number"] { width: 70px; text-align: right; }
+.ing-row input.unit-input { width: 55px; }
+
+.economics { margin-top: 10px; padding: 8px 12px; background: var(--surface-2); border-radius: 4px; font-size: 11px; display: flex; gap: 16px; }
+.econ-item { display: flex; gap: 4px; }
+.econ-val { font-weight: 600; }
+.econ-val.pos { color: var(--green); }
+.econ-val.neg { color: var(--red); }
+
+.mod-actions { display: flex; gap: 8px; padding-top: 12px; align-items: center; }
+.warn { color: var(--orange); font-size: 11px; padding: 4px 0; }
+.empty { text-align: center; padding: 40px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Modifier Editor</h1>
+  <div class="header-links">
+    <a href="/ui">Agent</a>
+    <a href="/recipes">Recipes</a>
+    <a href="/ops">Operations</a>
+  </div>
+</div>
+
+<div class="controls">
+  <input type="text" id="search" placeholder="Search modifiers..." oninput="render()"/>
+  <button class="btn btn-gold" onclick="addNew()" style="margin-left:auto">+ New Modifier</button>
+</div>
+
+<div class="content" id="content"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = location.origin;
+let mods = {};
+let openCards = new Set();
+let economics = {};
+
+async function load() {
+  try {
+    const res = await fetch(API + '/api/modifiers');
+    mods = await res.json();
+    render();
+    // Load economics for each modifier
+    for (const key of Object.keys(mods)) {
+      fetchEcon(key);
+    }
+  } catch(e) {
+    document.getElementById('content').innerHTML = '<div class="empty">Failed to load modifiers</div>';
+  }
+}
+
+async function fetchEcon(key) {
+  try {
+    const res = await fetch(API + '/api/modifiers/' + key + '/economics?recipe=latte');
+    if (res.ok) {
+      economics[key] = await res.json();
+      // Re-render just if card is open
+      if (openCards.has(key)) render();
+    }
+  } catch(e) {}
+}
+
+function render() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const el = document.getElementById('content');
+  let keys = Object.keys(mods);
+  if (search) keys = keys.filter(k => k.includes(search) || (mods[k].display || '').toLowerCase().includes(search));
+  if (!keys.length) { el.innerHTML = '<div class="empty">No modifiers</div>'; return; }
+  el.innerHTML = keys.map(k => cardHTML(k, mods[k])).join('');
+  openCards.forEach(k => { const b = document.getElementById('body-' + k); if (b) b.classList.add('open'); });
+}
+
+function cardHTML(key, m) {
+  const t = m.type || 'add';
+  const adds = m.adds || [];
+  const removes = m.removes || [];
+  const econ = economics[key];
+
+  return `
+  <div class="mod-card">
+    <div class="mod-header" onclick="toggle('${key}')">
+      <span class="mod-name">${m.display || key}</span>
+      <div class="mod-meta">
+        ${adds.length ? adds.length + ' add' : ''}
+        ${removes.length ? removes.length + ' rem' : ''}
+        ${t === 'size_upgrade' ? 'x' + (m.scale_factor || '?') : ''}
+        ${m.upcharge ? '$' + m.upcharge.toFixed(2) : ''}
+        <span class="badge badge-${t}">${t}</span>
+      </div>
+    </div>
+    <div class="mod-body" id="body-${key}">
+      <div class="field-row">
+        <label>Display</label>
+        <input value="${m.display || ''}" onchange="edit('${key}','display',this.value)" style="width:200px"/>
+      </div>
+      <div class="field-row">
+        <label>Type</label>
+        <select onchange="edit('${key}','type',this.value)">
+          <option value="add"${t==='add'?' selected':''}>add</option>
+          <option value="replace"${t==='replace'?' selected':''}>replace</option>
+          <option value="size_upgrade"${t==='size_upgrade'?' selected':''}>size_upgrade</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label>Upcharge</label>
+        <input type="number" step="0.01" value="${m.upcharge ?? 0}" onchange="edit('${key}','upcharge',parseFloat(this.value)||0)" style="width:80px"/>
+      </div>
+      ${t === 'size_upgrade' ? `
+        <div class="field-row">
+          <label>Scale</label>
+          <input type="number" step="0.1" value="${m.scale_factor || 1.5}" onchange="edit('${key}','scale_factor',parseFloat(this.value)||1)" style="width:80px"/>
+        </div>
+      ` : `
+        ${t === 'replace' ? `
+          <div class="section-label">Removes</div>
+          ${removes.map((r,i) => ingRow(key, 'removes', r, i)).join('')}
+          <button class="btn btn-add" onclick="addRow('${key}','removes')" style="margin:4px 0">+ Remove row</button>
+        ` : ''}
+        <div class="section-label">Adds</div>
+        ${adds.map((a,i) => ingRow(key, 'adds', a, i)).join('')}
+        <button class="btn btn-add" onclick="addRow('${key}','adds')" style="margin:4px 0">+ Add row</button>
+      `}
+      ${econ ? `
+        <div class="economics">
+          <div class="econ-item">Cost impact: <span class="econ-val ${econ.cost_impact >= 0 ? 'neg' : 'pos'}">${econ.cost_impact >= 0 ? '+' : ''}$${econ.cost_impact.toFixed(2)}</span></div>
+          <div class="econ-item">Upcharge: <span class="econ-val pos">+$${econ.upcharge.toFixed(2)}</span></div>
+          <div class="econ-item">Profit: <span class="econ-val ${econ.modifier_profit >= 0 ? 'pos' : 'neg'}">${econ.modifier_profit >= 0 ? '+' : ''}$${econ.modifier_profit.toFixed(2)}</span></div>
+          <span style="color:var(--muted);font-size:10px;margin-left:auto">on latte</span>
+        </div>
+      ` : ''}
+      <div class="mod-actions">
+        <button class="btn btn-save" onclick="save('${key}')">Save</button>
+        <button class="btn btn-del" onclick="del_('${key}')">Delete</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function ingRow(key, list, item, idx) {
+  const qfr = item.quantity_from_removed;
+  return `<div class="ing-row">
+    <input value="${item.ingredient_key || ''}" placeholder="ingredient_key" onchange="editRow('${key}','${list}',${idx},'ingredient_key',this.value)"/>
+    ${qfr ? '<span style="font-size:11px;color:var(--muted)">qty from removed</span>' :
+      `<input type="number" step="any" value="${item.quantity ?? ''}" placeholder="qty" onchange="editRow('${key}','${list}',${idx},'quantity',parseFloat(this.value)||0)"/>`}
+    <input class="unit-input" value="${item.unit || ''}" placeholder="unit" onchange="editRow('${key}','${list}',${idx},'unit',this.value)"/>
+    <button class="btn-rm" onclick="rmRow('${key}','${list}',${idx})">&#10005;</button>
+  </div>`;
+}
+
+// ── Edit helpers ──
+function toggle(key) {
+  if (openCards.has(key)) openCards.delete(key); else openCards.add(key);
+  render();
+}
+
+function edit(key, field, val) { mods[key][field] = val; }
+
+function editRow(key, list, idx, field, val) { mods[key][list][idx][field] = val; }
+
+function addRow(key, list) {
+  if (!mods[key][list]) mods[key][list] = [];
+  mods[key][list].push({ ingredient_key: '', quantity: 0, unit: 'ea' });
+  openCards.add(key);
+  render();
+}
+
+function rmRow(key, list, idx) {
+  mods[key][list].splice(idx, 1);
+  openCards.add(key);
+  render();
+}
+
+function addNew() {
+  const key = prompt('Modifier key (lowercase_snake_case):');
+  if (!key || !/^[a-z][a-z0-9_]*$/.test(key)) { toast('Invalid key', false); return; }
+  if (mods[key]) { toast('Already exists', false); return; }
+  mods[key] = { display: key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), type: 'add', adds: [{ ingredient_key: '', quantity: 0, unit: 'ea' }], upcharge: 0 };
+  openCards.add(key);
+  render();
+}
+
+async function save(key) {
+  try {
+    // Try update first, then create if 404
+    let res = await fetch(API + '/api/modifiers/' + key, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mods[key])
+    });
+    if (res.status === 404) {
+      res = await fetch(API + '/api/modifiers/' + key, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mods[key])
+      });
+    }
+    if (!res.ok) throw new Error((await res.json()).detail || 'Save failed');
+    toast('Saved: ' + (mods[key].display || key), true);
+    fetchEcon(key);
+  } catch(e) { toast(e.message, false); }
+}
+
+async function del_(key) {
+  if (!confirm('Delete modifier "' + key + '"?')) return;
+  try {
+    const res = await fetch(API + '/api/modifiers/' + key, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Delete failed');
+    delete mods[key];
+    openCards.delete(key);
+    toast('Deleted: ' + key, true);
+    render();
+  } catch(e) { toast(e.message, false); }
+}
+
+function toast(msg, ok) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (ok ? 'ok' : 'err');
+  setTimeout(() => el.className = 'toast', 3000);
+}
+
+load();
+</script>
+</body>
+</html>

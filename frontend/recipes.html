@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Maillard - Recipe Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #08080a; --surface: #111114; --surface-2: #19191d; --surface-3: #222228;
+  --border: #2a2a32; --gold: #c49a2a; --gold-dim: rgba(196,154,42,0.12);
+  --white: #f2f2f5; --text: #d8d8e0; --muted: #6b6b78; --green: #34d399;
+  --red: #ef4444; --blue: #60a5fa; --yellow: #fbbf24; --orange: #f97316;
+}
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.header h1 { font-size: 18px; color: var(--white); font-weight: 700; }
+.header-links { display: flex; gap: 12px; }
+.header-links a { color: var(--muted); text-decoration: none; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; }
+.header-links a:hover { color: var(--gold); border-color: var(--gold); }
+.summary-bar { display: flex; gap: 20px; padding: 14px 24px; background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: 12px; flex-wrap: wrap; align-items: center; }
+.stat { display: flex; gap: 5px; align-items: center; }
+.stat-val { color: var(--white); font-weight: 600; }
+.stat-label { color: var(--muted); }
+.controls { display: flex; gap: 10px; padding: 14px 24px; align-items: center; flex-wrap: wrap; }
+.filter-tabs { display: flex; gap: 0; }
+.filter-tab { padding: 6px 14px; font-size: 12px; cursor: pointer; border: 1px solid var(--border); background: var(--surface-2); color: var(--muted); font-family: inherit; font-weight: 500; }
+.filter-tab:first-child { border-radius: 4px 0 0 4px; }
+.filter-tab:last-child { border-radius: 0 4px 4px 0; }
+.filter-tab + .filter-tab { border-left: none; }
+.filter-tab.active { background: var(--gold-dim); color: var(--gold); border-color: var(--gold); }
+.filter-count { font-size: 10px; opacity: 0.7; margin-left: 3px; }
+.controls input[type="text"] { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 4px; font-size: 12px; font-family: inherit; }
+.btn { padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; border: 1px solid; font-family: inherit; }
+.btn-gold { background: var(--gold-dim); color: var(--gold); border-color: var(--gold); }
+.btn-gold:hover { background: var(--gold); color: #000; }
+.btn-approve { background: rgba(52,211,153,0.12); color: var(--green); border-color: var(--green); }
+.btn-approve:hover { background: var(--green); color: #000; }
+.btn-approve:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-save { background: rgba(96,165,250,0.12); color: var(--blue); border-color: var(--blue); }
+.btn-save:hover { background: var(--blue); color: #000; }
+.btn-reject { background: rgba(239,68,68,0.08); color: var(--red); border-color: rgba(239,68,68,0.3); }
+.btn-reject:hover { background: var(--red); color: #000; }
+.btn-add { background: var(--surface-3); color: var(--muted); border-color: var(--border); }
+.btn-add:hover { color: var(--text); border-color: var(--text); }
+.btn-rm { background: none; border: none; color: var(--red); cursor: pointer; font-size: 14px; padding: 2px 6px; }
+.content { padding: 0 24px 40px; }
+.toast { position: fixed; top: 16px; right: 16px; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 500; z-index: 200; opacity: 0; transition: opacity 0.3s; }
+.toast.show { opacity: 1; }
+.toast.ok { background: #064e3b; color: var(--green); border: 1px solid var(--green); }
+.toast.err { background: #450a0a; color: var(--red); border: 1px solid var(--red); }
+.mod-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-top: 14px; overflow: hidden; }
+.mod-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; }
+.mod-header:hover { background: var(--surface-2); }
+.mod-name { font-weight: 600; color: var(--white); font-size: 14px; }
+.mod-meta { display: flex; gap: 10px; font-size: 11px; color: var(--muted); align-items: center; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.badge-draft { background: rgba(251,191,36,0.12); color: var(--yellow); }
+.badge-approved { background: rgba(52,211,153,0.12); color: var(--green); }
+.badge-rejected { background: rgba(239,68,68,0.12); color: var(--red); }
+.badge-ready { background: rgba(52,211,153,0.08); color: var(--green); font-size: 10px; margin-left: 4px; }
+.badge-high { color: var(--green); } .badge-medium { color: var(--yellow); } .badge-low { color: var(--orange); }
+.mod-body { display: none; padding: 14px 16px; }
+.mod-body.open { display: block; }
+.ing-table { width: 100%; font-size: 12px; border-collapse: collapse; }
+.ing-table th { text-align: left; color: var(--muted); font-weight: 500; padding: 4px 6px; border-bottom: 1px solid var(--border); font-size: 10px; text-transform: uppercase; }
+.ing-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.ing-table input, .ing-table select { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 4px 6px; border-radius: 3px; font-size: 12px; font-family: inherit; }
+.ing-table input:focus { border-color: var(--gold); outline: none; }
+.cost-col { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cost-missing { color: var(--orange); font-style: italic; }
+.cost-ok { color: var(--green); }
+.cost-total { display: flex; gap: 16px; padding: 10px 0; font-size: 13px; align-items: center; border-top: 1px solid var(--border); margin-top: 8px; }
+.cost-total-val { font-weight: 700; color: var(--white); font-size: 15px; }
+.cost-status { font-size: 11px; padding: 2px 8px; border-radius: 3px; font-weight: 600; }
+.cost-status.calculable { background: rgba(52,211,153,0.12); color: var(--green); }
+.cost-status.partial { background: rgba(251,191,36,0.12); color: var(--yellow); }
+.cost-status.incomplete { background: rgba(249,115,22,0.12); color: var(--orange); }
+.mod-actions { display: flex; gap: 8px; padding-top: 10px; align-items: center; }
+.recipe-note { color: var(--muted); font-size: 11px; margin-left: auto; }
+.warn { color: var(--orange); font-size: 11px; padding: 4px 0; }
+.empty { text-align: center; padding: 40px; color: var(--muted); }
+/* Autocomplete */
+.ac-wrap { position: relative; }
+.ac-list { position: absolute; top: 100%; left: 0; width: 260px; max-height: 180px; overflow-y: auto; background: var(--surface-3); border: 1px solid var(--border); border-radius: 4px; z-index: 100; display: none; }
+.ac-list.show { display: block; }
+.ac-item { padding: 5px 8px; cursor: pointer; font-size: 11px; display: flex; justify-content: space-between; }
+.ac-item:hover { background: var(--gold-dim); }
+.ac-item .ac-key { color: var(--muted); }
+.ac-new { color: var(--gold); font-weight: 600; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Recipe Editor</h1>
+  <div class="header-links"><a href="/ui">Agent</a><a href="/modifiers">Modifiers</a><a href="/ops">Operations</a></div>
+</div>
+<div class="summary-bar" id="summary-bar"></div>
+<div class="controls">
+  <div class="filter-tabs" id="filter-tabs"></div>
+  <input type="text" id="filter-search" placeholder="Search..." oninput="render()" style="margin-left:10px"/>
+  <button class="btn btn-gold" onclick="generateDrafts()" style="margin-left:auto">Generate Drafts</button>
+</div>
+<div class="content" id="content"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = location.origin;
+let allDrafts = [], summary = {}, activeTab = 'draft', openCards = new Set();
+let allIngredients = []; // cached ingredient list
+let costCache = {}; // recipe_key -> cost result
+
+async function load() {
+  try {
+    const [dRes, iRes] = await Promise.all([
+      fetch(API + '/api/recipes/drafts'),
+      fetch(API + '/api/ingredients/list')
+    ]);
+    const dData = await dRes.json();
+    allDrafts = dData.drafts || []; summary = dData.summary || {};
+    allIngredients = await iRes.json();
+    renderSummary(); renderTabs(); render();
+  } catch(e) { document.getElementById('content').innerHTML = '<div class="empty">Failed to load</div>'; }
+}
+
+async function generateDrafts() {
+  const res = await fetch(API + '/api/recipes/generate');
+  const d = await res.json(); allDrafts = d.drafts || []; summary = d.summary || {};
+  renderSummary(); renderTabs(); render(); toast('Drafts regenerated', true);
+}
+
+// Helpers
+function isReady(d) { const i=d.ingredients||[]; return d.status==='draft'&&i.length>0&&i.every(x=>x.quantity!=null&&x.quantity!==''&&!x.needs_review); }
+
+function renderSummary() {
+  const s = summary;
+  document.getElementById('summary-bar').innerHTML =
+    `<div class="stat"><span class="stat-val">${s.total_sold_products||0}</span><span class="stat-label">Sold</span></div>
+     <div class="stat"><span class="stat-val">${s.approved_recipes||0}</span><span class="stat-label">Approved</span></div>
+     <div class="stat"><span class="stat-val">${s.draft_recipes||0}</span><span class="stat-label">Drafts</span></div>
+     <div class="stat"><span class="stat-val">${s.coverage_pct||0}%</span><span class="stat-label">Coverage</span></div>`;
+}
+
+function renderTabs() {
+  const c = {draft:0,incomplete:0,ready:0,approved:0,rejected:0};
+  allDrafts.forEach(d => { if(d.status==='approved') c.approved++; else if(d.status==='rejected') c.rejected++; else if(isReady(d)){c.ready++;c.draft++;}else{c.incomplete++;c.draft++;} });
+  const tabs = [{id:'draft',l:'Drafts',c:c.draft},{id:'incomplete',l:'Incomplete',c:c.incomplete},{id:'ready',l:'Ready',c:c.ready},{id:'approved',l:'Approved',c:c.approved},{id:'rejected',l:'Rejected',c:c.rejected}];
+  document.getElementById('filter-tabs').innerHTML = tabs.map(t =>
+    `<button class="filter-tab${activeTab===t.id?' active':''}" onclick="activeTab='${t.id}';renderTabs();render()">${t.l}<span class="filter-count">${t.c}</span></button>`
+  ).join('');
+}
+
+function render() {
+  const search = document.getElementById('filter-search').value.toLowerCase();
+  let filtered = allDrafts.filter(d => {
+    if(activeTab==='draft') return d.status==='draft';
+    if(activeTab==='incomplete') return d.status==='draft'&&!isReady(d);
+    if(activeTab==='ready') return isReady(d);
+    if(activeTab==='approved') return d.status==='approved';
+    if(activeTab==='rejected') return d.status==='rejected';
+    return true;
+  });
+  if(search) filtered = filtered.filter(d => d.recipe_key.includes(search)||(d.display_name||'').toLowerCase().includes(search));
+  const el = document.getElementById('content');
+  if(!filtered.length){el.innerHTML='<div class="empty">No recipes match</div>';return;}
+  el.innerHTML = filtered.map(d => cardHTML(d)).join('');
+  openCards.forEach(k => { const b=document.getElementById('body-'+k); if(b) b.classList.add('open'); });
+  // Fetch costs for open cards
+  openCards.forEach(k => fetchCost(k));
+}
+
+function cardHTML(d) {
+  const ings=d.ingredients||[], ready=isReady(d), ro=d.status==='approved'||d.status==='rejected';
+  const bc = d.status==='approved'?'badge-approved':d.status==='rejected'?'badge-rejected':'badge-draft';
+  const cc = costCache[d.recipe_key];
+  const costLabel = cc ? `$${cc.total_cost.toFixed(2)}` : '';
+  return `<div class="mod-card">
+    <div class="mod-header" onclick="toggle('${d.recipe_key}')">
+      <span class="mod-name">${d.display_name||d.recipe_key}${ready?'<span class="badge badge-ready">ready</span>':''}</span>
+      <div class="mod-meta">
+        <span>${d.total_qty_sold||'?'} sold</span><span>${ings.length} ing.</span>
+        ${costLabel?`<span style="color:var(--green)">$${cc.total_cost.toFixed(2)}</span>`:''}
+        <span class="badge ${bc}">${d.status}</span>
+      </div>
+    </div>
+    <div class="mod-body" id="body-${d.recipe_key}">
+      <table class="ing-table">
+        <tr><th>Ingredient</th><th>Qty</th><th>Unit</th><th class="cost-col">Unit Cost</th><th class="cost-col">Line Cost</th><th>Conf.</th><th></th></tr>
+        ${ings.map((ing,i) => ingRow(d.recipe_key, ing, i, ro)).join('')}
+      </table>
+      ${costSummaryHTML(d.recipe_key)}
+      <div class="mod-actions">
+        ${ro?'':`<button class="btn btn-add" onclick="addIng('${d.recipe_key}')">+ Add</button>
+        <button class="btn btn-save" onclick="save('${d.recipe_key}')">Save</button>
+        <button class="btn btn-approve${ready?'':'" disabled'}" onclick="approve('${d.recipe_key}')">Approve</button>
+        <button class="btn btn-reject" onclick="reject('${d.recipe_key}')">Reject</button>`}
+        <span class="recipe-note">${ro?(d.status==='approved'?'In recipes.json':'Rejected'):ready?'Ready to approve':'Fill quantities'}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function ingRow(key, ing, idx, ro) {
+  const cc = costCache[key];
+  const cl = cc?.cost_breakdown?.[idx];
+  const confCls = 'badge-'+(ing.confidence||'low');
+  if(ro) {
+    return `<tr><td>${ing.ingredient_key}</td><td class="cost-col">${ing.quantity??''}</td><td>${ing.unit||''}</td>
+      <td class="cost-col">${cl?'$'+cl.unit_cost.toFixed(2):''}</td><td class="cost-col">${cl?'$'+cl.line_cost.toFixed(2):''}</td>
+      <td><span class="${confCls}">${ing.confidence||'?'}</span></td><td></td></tr>`;
+  }
+  return `<tr>
+    <td><div class="ac-wrap">
+      <input value="${ing.ingredient_key}" style="width:160px" data-key="${key}" data-idx="${idx}"
+        oninput="showAC(this)" onfocus="showAC(this)" onblur="setTimeout(()=>hideAC(this),200)"
+        onchange="editIng('${key}',${idx},'ingredient_key',this.value)"/>
+      <div class="ac-list" id="ac-${key}-${idx}"></div>
+    </div></td>
+    <td><input type="number" step="any" value="${ing.quantity??''}" style="width:65px;text-align:right" placeholder="?"
+      onchange="editIng('${key}',${idx},'quantity',this.value===''?null:parseFloat(this.value))"/></td>
+    <td><input value="${ing.unit||''}" style="width:50px" onchange="editIng('${key}',${idx},'unit',this.value)"/></td>
+    <td class="cost-col">${cl&&cl.calculable?'<span class="cost-ok">$'+cl.unit_cost.toFixed(2)+'</span>':cl?'<span class="cost-missing">missing</span>':''}</td>
+    <td class="cost-col">${cl&&cl.calculable?'<span class="cost-ok">$'+cl.line_cost.toFixed(2)+'</span>':cl&&!cl.calculable?'<span class="cost-missing">--</span>':''}</td>
+    <td><span class="${confCls}">${ing.confidence||'?'}</span></td>
+    <td><button class="btn-rm" onclick="rmIng('${key}',${idx})">&#10005;</button></td>
+  </tr>`;
+}
+
+function costSummaryHTML(key) {
+  const cc = costCache[key];
+  if(!cc) return '<div class="cost-total"><span style="color:var(--muted);font-size:11px">Open card to calculate cost</span></div>';
+  return `<div class="cost-total">
+    <span>Total Cost:</span><span class="cost-total-val">$${cc.total_cost.toFixed(2)}</span>
+    <span class="cost-status ${cc.status}">${cc.status}</span>
+    ${cc.missing_costs.length?`<span style="color:var(--orange);font-size:11px">${cc.missing_costs.length} missing cost</span>`:''}
+    ${cc.missing_quantities.length?`<span style="color:var(--orange);font-size:11px">${cc.missing_quantities.length} missing qty</span>`:''}
+  </div>`;
+}
+
+// Cost calculation
+async function fetchCost(key) {
+  const d = allDrafts.find(x=>x.recipe_key===key);
+  if(!d) return;
+  try {
+    const res = await fetch(API+'/api/recipes/draft-cost', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ingredients: d.ingredients})
+    });
+    if(res.ok) { costCache[key] = await res.json(); render(); }
+  } catch(e) {}
+}
+
+// Autocomplete
+function showAC(el) {
+  const val = el.value.toLowerCase();
+  const key = el.dataset.key, idx = el.dataset.idx;
+  const list = document.getElementById('ac-'+key+'-'+idx);
+  if(!val || val.length < 2) { list.classList.remove('show'); return; }
+  const matches = allIngredients.filter(i =>
+    i.ingredient_key.toLowerCase().includes(val) || (i.display_name||'').toLowerCase().includes(val)
+  ).slice(0, 8);
+  let html = matches.map(m =>
+    `<div class="ac-item" onmousedown="pickIng('${key}',${idx},'${m.ingredient_key}','${m.base_unit}')">${m.display_name} <span class="ac-key">${m.ingredient_key}</span></div>`
+  ).join('');
+  html += `<div class="ac-item ac-new" onmousedown="createNewIng('${key}',${idx},'${val}')">+ Create "${val}"</div>`;
+  list.innerHTML = html;
+  list.classList.add('show');
+}
+function hideAC(el) { const key=el.dataset.key, idx=el.dataset.idx; document.getElementById('ac-'+key+'-'+idx).classList.remove('show'); }
+
+function pickIng(key, idx, ingKey, unit) {
+  const d = allDrafts.find(x=>x.recipe_key===key);
+  if(!d) return;
+  d.ingredients[idx].ingredient_key = ingKey;
+  if(unit && !d.ingredients[idx].unit) d.ingredients[idx].unit = unit;
+  d.ingredients[idx].needs_review = false;
+  openCards.add(key); render(); fetchCost(key);
+}
+
+async function createNewIng(key, idx, name) {
+  const ingKey = name.replace(/[^a-z0-9]+/gi,'_').toLowerCase().replace(/^_|_$/g,'');
+  // Check duplicates
+  try {
+    const res = await fetch(API+'/api/ingredients/duplicates?name='+encodeURIComponent(name));
+    const dupes = await res.json();
+    if(dupes.length > 0 && dupes[0].match_score >= 2) {
+      if(!confirm('Possible existing ingredient: "'+dupes[0].display_name+'" ('+dupes[0].ingredient_key+')\n\nCreate new anyway?')) {
+        pickIng(key, idx, dupes[0].ingredient_key, dupes[0].base_unit);
+        return;
+      }
+    }
+  } catch(e) {}
+  // Create
+  const unit = prompt('Base unit for "'+ingKey+'":', 'ea') || 'ea';
+  try {
+    await fetch(API+'/api/ingredients/create', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ingredient_key: ingKey, display_name: name.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()), base_unit: unit})
+    });
+    allIngredients = await (await fetch(API+'/api/ingredients/list')).json();
+    pickIng(key, idx, ingKey, unit);
+    toast('Created: '+ingKey, true);
+  } catch(e) { toast('Failed to create ingredient', false); }
+}
+
+// Edits
+function toggle(key) { if(openCards.has(key)){openCards.delete(key);}else{openCards.add(key);fetchCost(key);} render(); }
+
+function editIng(key, idx, field, val) {
+  const d = allDrafts.find(x=>x.recipe_key===key);
+  if(!d) return;
+  d.ingredients[idx][field] = val;
+  if(field==='quantity'&&val!=null) d.ingredients[idx].needs_review = false;
+  fetchCost(key);
+}
+
+function addIng(key) {
+  const d = allDrafts.find(x=>x.recipe_key===key);
+  if(!d) return;
+  d.ingredients.push({ingredient_key:'',quantity:null,unit:'ea',confidence:'low',reason:'manual',needs_review:true});
+  openCards.add(key); render();
+}
+
+function rmIng(key, idx) {
+  const d = allDrafts.find(x=>x.recipe_key===key);
+  if(!d) return;
+  d.ingredients.splice(idx, 1);
+  openCards.add(key); render(); fetchCost(key);
+}
+
+async function save(key) {
+  const d = allDrafts.find(x=>x.recipe_key===key);
+  if(!d) return;
+  try {
+    const res = await fetch(API+'/api/recipes/update/'+key, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ingredients:d.ingredients})});
+    if(!res.ok) throw new Error((await res.json()).detail||'Save failed');
+    toast('Saved: '+(d.display_name||key), true); renderTabs();
+  } catch(e) { toast(e.message, false); }
+}
+
+async function approve(key) {
+  const d = allDrafts.find(x=>x.recipe_key===key);
+  if(!d) return;
+  try {
+    await fetch(API+'/api/recipes/update/'+key, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ingredients:d.ingredients})});
+    const res = await fetch(API+'/api/recipes/approve/'+key, {method:'POST'});
+    if(!res.ok) throw new Error((await res.json()).detail||'Approve failed');
+    toast('Approved: '+(d.display_name||key), true); openCards.delete(key); await load();
+  } catch(e) { toast(e.message, false); }
+}
+
+async function reject(key) {
+  try {
+    const res = await fetch(API+'/api/recipes/reject/'+key, {method:'POST'});
+    if(!res.ok) throw new Error('Reject failed');
+    toast('Rejected', true); openCards.delete(key); await load();
+  } catch(e) { toast(e.message, false); }
+}
+
+function toast(msg, ok) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'toast show '+(ok?'ok':'err');
+  setTimeout(() => el.className = 'toast', 3000);
+}
+
+load();
+</script>
+</body>
+</html>

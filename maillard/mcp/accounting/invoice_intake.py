@@ -282,27 +282,132 @@ def _clean_name(raw: str) -> str:
 
 
 def _parse_pack_size(raw: str) -> dict | None:
-    """Try to extract pack/weight info from name like '12x8oz' or '5lb bag'."""
-    # Pattern: NxN unit  (e.g., 12x8oz, 6x1L, 12/32oz)
-    m = re.search(r"(\d+)\s*[x/]\s*(\d+\.?\d*)\s*([a-zA-Z]+)", raw)
+    """Try to extract pack/weight info from item name."""
+    return parse_pack_size(raw)
+
+
+def parse_pack_size(raw: str) -> dict | None:
+    """Extract pack size from patterns like '12x8oz', '1/1000', '4/1 gal', '6 x 5 lb', 'dozen'.
+
+    Returns:
+        {"pack_count": int, "per_unit_size": float, "per_unit_unit": str}
+        or None if no pattern matched.
+    """
+    # Pattern: N/N unit  (e.g., 4/1 gal, 6/5 lb) — only recognized units
+    _KNOWN_UNITS_RE = r"(?:lb|lbs|kg|oz|gal|gallon|gallons|L|liter|liters|ml|qt|quart)\b"
+    m = re.search(r"(\d+)\s*/\s*(\d+\.?\d*)\s*(" + _KNOWN_UNITS_RE + r")", raw, re.IGNORECASE)
     if m:
-        return {
-            "pack_count": int(m.group(1)),
-            "per_unit_size": float(m.group(2)),
-            "per_unit_unit": normalize_unit(m.group(3)),
-        }
-    # Pattern: N unit (e.g., 5lb, 2.5kg, 32oz)
+        return {"pack_count": int(m.group(1)), "per_unit_size": float(m.group(2)),
+                "per_unit_unit": normalize_unit(m.group(3))}
+
+    # Pattern: NxN unit  (e.g., 12x8oz, 6x1L)
+    m = re.search(r"(\d+)\s*[xX]\s*(\d+\.?\d*)\s*([a-zA-Z]+)", raw)
+    if m:
+        return {"pack_count": int(m.group(1)), "per_unit_size": float(m.group(2)),
+                "per_unit_unit": normalize_unit(m.group(3))}
+
+    # Pattern: N/count (no unit, e.g., "1/1000" = 1 case of 1000)
+    m = re.search(r"(\d+)\s*/\s*([\d,]+)(?:\s|$|-)", raw)
+    if m:
+        count = int(m.group(2).replace(",", ""))
+        if count >= 10:
+            return {"pack_count": count, "per_unit_size": 1, "per_unit_unit": "ea"}
+
+    # Pattern: "N ct" or "N count" (e.g., "42 ct", "500ct")
+    m = re.search(r"(\d+)\s*(?:ct|count)\b", raw, re.IGNORECASE)
+    if m:
+        count = int(m.group(1))
+        if count >= 2:
+            return {"pack_count": count, "per_unit_size": 1, "per_unit_unit": "ea"}
+
+    # Pattern: "dozen" or "dz"
+    if re.search(r"\bdozen\b|\bdz\b", raw, re.IGNORECASE):
+        return {"pack_count": 12, "per_unit_size": 1, "per_unit_unit": "ea"}
+
+    # Pattern: N unit/N (e.g., "4.5 Oz/42" = 42 items at 4.5oz each)
+    m = re.search(
+        r"(\d+\.?\d*)\s*(lb|lbs|kg|kgs|oz|gal|gallon|gallons|L|liter|liters|ml|qt|quart)\s*/\s*(\d+)",
+        raw, re.IGNORECASE,
+    )
+    if m:
+        return {"pack_count": int(m.group(3)), "per_unit_size": float(m.group(1)),
+                "per_unit_unit": normalize_unit(m.group(2))}
+
+    # Pattern: N unit (e.g., 5lb, 2.5kg, 32oz, 4.5 Oz)
     m = re.search(
         r"(\d+\.?\d*)\s*(lb|lbs|kg|kgs|oz|gal|gallon|gallons|L|liter|liters|ml|qt|quart)\b",
         raw, re.IGNORECASE,
     )
     if m:
-        return {
-            "pack_count": 1,
-            "per_unit_size": float(m.group(1)),
-            "per_unit_unit": normalize_unit(m.group(2)),
-        }
+        return {"pack_count": 1, "per_unit_size": float(m.group(1)),
+                "per_unit_unit": normalize_unit(m.group(2))}
+
     return None
+
+
+# ── Base unit normalization + conversion ──
+
+_BASE_UNIT_MAP = {
+    # Weight -> grams
+    "lb": ("g", 453.592), "kg": ("g", 1000), "oz": ("g", 28.3495), "g": ("g", 1),
+    # Volume -> ml
+    "gal": ("ml", 3785.41), "L": ("ml", 1000), "mL": ("ml", 1), "qt": ("ml", 946.353),
+    # Count -> units
+    "ea": ("unit", 1), "ct": ("unit", 1), "case": ("unit", 1), "box": ("unit", 1),
+    "pack": ("unit", 1), "bag": ("unit", 1), "bottle": ("unit", 1),
+}
+
+
+def normalize_base_unit(unit_text: str) -> str:
+    """Convert any unit to its base dimension: gram, ml, or unit."""
+    norm = normalize_unit(unit_text)
+    base, _ = _BASE_UNIT_MAP.get(norm, ("unit", 1))
+    return base
+
+
+def convert_to_base_units(quantity: float, purchase_unit: str, pack_count: int = 1,
+                          per_unit_size: float = 1, per_unit_unit: str = "") -> dict:
+    """Convert a purchase quantity to total base units.
+
+    Args:
+        quantity: number of containers purchased (e.g., 2 cases)
+        purchase_unit: the container unit (e.g., "case")
+        pack_count: items per container (e.g., 1000 cups per case)
+        per_unit_size: size of each item in per_unit_unit (e.g., 16 oz per cup)
+        per_unit_unit: unit of each item inside the pack (e.g., "oz")
+
+    Returns:
+        {"total_base_units": float, "base_unit": str, "confidence": str}
+    """
+    # If per_unit_unit has a base conversion, use it
+    if per_unit_unit:
+        norm = normalize_unit(per_unit_unit)
+        base, factor = _BASE_UNIT_MAP.get(norm, ("unit", 1))
+        total = quantity * pack_count * per_unit_size * factor
+        return {"total_base_units": round(total, 2), "base_unit": base, "confidence": "high"}
+
+    # Container with count only (e.g., 2 cases of 1000 cups)
+    if pack_count > 1:
+        total = quantity * pack_count
+        return {"total_base_units": round(total, 2), "base_unit": "unit", "confidence": "high"}
+
+    # Weight/volume purchase unit
+    norm = normalize_unit(purchase_unit)
+    base, factor = _BASE_UNIT_MAP.get(norm, ("unit", 1))
+    total = quantity * per_unit_size * factor
+    return {"total_base_units": round(total, 2), "base_unit": base,
+            "confidence": "high" if base != "unit" else "medium"}
+
+
+def calculate_derived_single_unit_cost(line_total: float, total_base_units: float) -> dict | None:
+    """Calculate cost per single base unit from line total and total base units.
+
+    Returns:
+        {"derived_unit_cost": float, "base_unit": str} or None
+    """
+    if not line_total or line_total <= 0 or not total_base_units or total_base_units <= 0:
+        return None
+    return {"derived_unit_cost": round(line_total / total_base_units, 5)}
 
 
 # ── Confidence Scoring ───────────────────────────────────────────

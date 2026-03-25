@@ -270,6 +270,16 @@ def _do_sync() -> None:
         log.info("sync ok: %d orders, %d items, %d products",
                  orders_upserted, items_upserted, len(sales_today))
 
+        # Enforce recipe coverage — create drafts for any new sold items
+        try:
+            from maillard.recipe_builder import enforce_recipe_coverage
+            cov = enforce_recipe_coverage()
+            if cov["created"] > 0:
+                log.info("recipe coverage: created %d new drafts (coverage: %.0f%%)",
+                         cov["created"], cov["coverage_pct"])
+        except Exception as ce:
+            log.warning("recipe coverage check failed: %s", ce)
+
     except Exception as e:
         _meta["status"] = "error"
         _meta["error_message"] = str(e)[:200]

@@ -44,6 +44,15 @@ cert_gen = CertificateGenerator()
 async def lifespan(app: FastAPI):
     from maillard.models.database import init_db
     init_db()
+    from app.core.db import init_db as init_central_db, DB_PATH
+    init_central_db()
+    if not DB_PATH.exists() or DB_PATH.stat().st_size < 5000:
+        from scripts.migrate_json_to_db import migrate
+        migrate()
+        logger.info("Central DB migrated from JSON + invoices.")
+    from app.data_access.bulk_parse_repo import migrate_columns, backfill_bulk_parse
+    migrate_columns()
+    backfill_bulk_parse()
     from maillard.sync_loop import start_sync
     start_sync(interval=60)
     logger.info("Coffee AGI starting — knowledge base loaded, intelligence DB ready, sales sync active.")
@@ -71,6 +80,360 @@ app.include_router(intelligence_router, prefix="/api")
 app.include_router(operations_router, prefix="/api")
 app.include_router(content_router, prefix="/api")
 app.include_router(invoices_router, prefix="/api")
+
+
+# ── Sales live endpoints ──────────────────────────────────────────────────────
+
+def _build_sales_response() -> dict:
+    """Build the combined sync status + sales snapshot response."""
+    from maillard.sync_loop import get_sales_sync_status
+    from maillard.mcp.operations.state_loader import load_current_state
+    sync = get_sales_sync_status()
+    state = load_current_state()
+
+    sales = state.get("sales_today", {})
+    amounts = state.get("sales_amounts", {})
+    top = state.get("top_items", [])
+
+    return {
+        **sync,
+        "sales_snapshot": {
+            "revenue": sum(amounts.values()),
+            "orders": state.get("raw_order_count", 0),
+            "units_sold": sum(sales.values()),
+            "products_sold": len(sales),
+            "top_items": top[:10],
+        },
+    }
+
+
+# ── Recipe builder endpoints ──────────────────────────────────────────────────
+
+@app.get("/api/recipes/unmapped", tags=["Recipes"])
+def recipe_unmapped():
+    """Return sold items with no approved recipe."""
+    from maillard.recipe_builder import find_unmapped_sales_items
+    return find_unmapped_sales_items()
+
+
+@app.post("/api/recipes/enforce-coverage", tags=["Recipes"])
+def recipe_enforce_coverage():
+    """Create draft recipes for all unmapped sales items."""
+    from maillard.recipe_builder import enforce_recipe_coverage
+    return enforce_recipe_coverage()
+
+
+@app.get("/api/recipes/drafts", tags=["Recipes"])
+def recipe_drafts():
+    from maillard.recipe_builder import get_recipe_drafts, get_recipe_status_summary
+    return {"drafts": get_recipe_drafts(), "summary": get_recipe_status_summary()}
+
+
+@app.get("/api/recipes/generate", tags=["Recipes"])
+def recipe_generate():
+    from maillard.recipe_builder import generate_recipe_drafts, get_recipe_status_summary
+    drafts = generate_recipe_drafts()
+    return {"drafts": drafts, "summary": get_recipe_status_summary()}
+
+
+@app.post("/api/recipes/update/{recipe_key}", tags=["Recipes"])
+def recipe_update(recipe_key: str, body: dict):
+    from maillard.recipe_builder import update_recipe_draft
+    result = update_recipe_draft(recipe_key, body)
+    if result is None:
+        raise HTTPException(404, f"Draft '{recipe_key}' not found")
+    return result
+
+
+@app.post("/api/recipes/approve/{recipe_key}", tags=["Recipes"])
+def recipe_approve(recipe_key: str):
+    from maillard.recipe_builder import approve_recipe
+    result = approve_recipe(recipe_key)
+    if result is None:
+        raise HTTPException(404, f"Draft '{recipe_key}' not found")
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+
+@app.get("/api/recipes/draft/{recipe_key}", tags=["Recipes"])
+def recipe_get_one(recipe_key: str):
+    from maillard.recipe_builder import get_recipe_draft
+    result = get_recipe_draft(recipe_key)
+    if result is None:
+        raise HTTPException(404, f"Draft '{recipe_key}' not found")
+    return result
+
+
+@app.post("/api/recipes/reject/{recipe_key}", tags=["Recipes"])
+def recipe_reject(recipe_key: str):
+    from maillard.recipe_builder import reject_recipe_draft
+    result = reject_recipe_draft(recipe_key)
+    if result is None:
+        raise HTTPException(404, f"Draft '{recipe_key}' not found")
+    return result
+
+
+@app.post("/api/recipes/validate/{recipe_key}", tags=["Recipes"])
+def recipe_validate(recipe_key: str):
+    from maillard.recipe_builder import get_recipe_draft, validate_recipe_draft
+    draft = get_recipe_draft(recipe_key)
+    if draft is None:
+        raise HTTPException(404, f"Draft '{recipe_key}' not found")
+    errors = validate_recipe_draft(draft)
+    return {"recipe_key": recipe_key, "valid": len(errors) == 0, "errors": errors}
+
+
+@app.get("/api/recipes/ingredients", tags=["Recipes"])
+def recipe_ingredients():
+    from maillard.recipe_builder import extract_purchased_ingredients
+    return extract_purchased_ingredients()
+
+
+@app.get("/api/ingredients/list", tags=["Ingredients"])
+def ingredients_list(search: str = ""):
+    """List all known ingredients, optionally filtered by search term."""
+    from app.data_access.ingredients_repo import list_ingredients
+    ings = list_ingredients()
+    if search:
+        s = search.lower()
+        ings = [i for i in ings if s in i["ingredient_key"].lower() or s in (i["display_name"] or "").lower()]
+    return ings
+
+
+@app.post("/api/ingredients/create", tags=["Ingredients"])
+def ingredient_create(body: dict):
+    """Create a new ingredient."""
+    from app.data_access.ingredients_repo import upsert_ingredient, get_ingredient
+    key = body.get("ingredient_key", "").strip()
+    if not key:
+        raise HTTPException(400, "ingredient_key is required")
+    existing = get_ingredient(key)
+    if existing and existing.get("cost_source") != "unknown":
+        raise HTTPException(409, f"Ingredient '{key}' already exists")
+    return upsert_ingredient(body)
+
+
+@app.get("/api/ingredients/duplicates", tags=["Ingredients"])
+def ingredient_duplicates(name: str):
+    """Find possible duplicate ingredients matching a name."""
+    from app.data_access.ingredients_repo import list_ingredients
+    import re
+    ings = list_ingredients()
+    tokens = [t for t in re.split(r"[_\s]+", name.lower()) if len(t) >= 3]
+    if not tokens:
+        return []
+    matches = []
+    for i in ings:
+        ik = i["ingredient_key"].lower()
+        dn = (i["display_name"] or "").lower()
+        score = sum(1 for t in tokens if t in ik or t in dn)
+        if score > 0:
+            matches.append({**i, "match_score": score})
+    matches.sort(key=lambda x: -x["match_score"])
+    return matches[:10]
+
+
+@app.post("/api/recipes/draft-cost", tags=["Recipes"])
+def recipe_draft_cost(body: dict):
+    """Calculate cost for a draft recipe (not yet approved). Body = {ingredients: [...]}."""
+    from maillard.mcp.operations.cost_engine import calculate_recipe_line_cost, _infer_unit_from_key
+    ingredients = body.get("ingredients", [])
+    breakdown = []
+    missing_costs = []
+    missing_quantities = []
+    for ing in ingredients:
+        ik = ing.get("ingredient_key", "")
+        qty = ing.get("quantity")
+        unit = ing.get("unit") or _infer_unit_from_key(ik)
+        if not ik:
+            continue
+        if qty is None or qty == "" or qty == 0:
+            missing_quantities.append(ik)
+            breakdown.append({"ingredient_key": ik, "quantity": None, "unit": unit,
+                              "unit_cost": 0, "line_cost": 0, "cost_source": "n/a", "calculable": False})
+            continue
+        line = calculate_recipe_line_cost(ik, float(qty), unit)
+        calculable = line["cost_source"] != "none"
+        if not calculable:
+            missing_costs.append(ik)
+        breakdown.append({**line, "calculable": calculable})
+    total = round(sum(l["line_cost"] for l in breakdown), 2)
+    if missing_quantities:
+        status = "incomplete"
+    elif missing_costs:
+        status = "partial"
+    else:
+        status = "calculable"
+    return {"total_cost": total, "status": status, "cost_breakdown": breakdown,
+            "missing_costs": missing_costs, "missing_quantities": missing_quantities}
+
+
+@app.get("/api/recipes/cost/{recipe_key}", tags=["Recipes"])
+def recipe_cost(recipe_key: str):
+    """Calculate full cost breakdown for an approved recipe."""
+    from maillard.mcp.operations.cost_engine import calculate_recipe_cost
+    result = calculate_recipe_cost(recipe_key)
+    if result is None:
+        raise HTTPException(404, f"Recipe '{recipe_key}' not found in approved recipes")
+    return result
+
+
+@app.get("/api/recipes/costs", tags=["Recipes"])
+def recipe_costs_all():
+    """Calculate costs for all approved recipes."""
+    from maillard.mcp.operations.cost_engine import calculate_all_recipe_costs
+    return calculate_all_recipe_costs()
+
+
+# ── Modifier endpoints ────────────────────────────────────────────────────────
+
+@app.get("/api/modifiers", tags=["Modifiers"])
+def modifiers_list():
+    from maillard.modifier_manager import get_modifiers
+    return get_modifiers()
+
+
+@app.get("/api/modifiers/{key}", tags=["Modifiers"])
+def modifier_get(key: str):
+    from maillard.modifier_manager import get_modifier
+    result = get_modifier(key)
+    if result is None:
+        raise HTTPException(404, f"Modifier '{key}' not found")
+    return result
+
+
+@app.post("/api/modifiers/{key}", tags=["Modifiers"])
+def modifier_create(key: str, body: dict):
+    from maillard.modifier_manager import create_modifier
+    result = create_modifier(key, body)
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+
+@app.put("/api/modifiers/{key}", tags=["Modifiers"])
+def modifier_update(key: str, body: dict):
+    from maillard.modifier_manager import update_modifier
+    result = update_modifier(key, body)
+    if result is None:
+        raise HTTPException(404, f"Modifier '{key}' not found")
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+
+@app.delete("/api/modifiers/{key}", tags=["Modifiers"])
+def modifier_delete(key: str):
+    from maillard.modifier_manager import delete_modifier
+    result = delete_modifier(key)
+    if result is None:
+        raise HTTPException(404, f"Modifier '{key}' not found")
+    return result
+
+
+@app.get("/api/modifiers/{key}/economics", tags=["Modifiers"])
+def modifier_economics(key: str, recipe: str = "latte"):
+    """Calculate cost impact of a modifier on a given recipe."""
+    from maillard.mcp.operations.cost_engine import calculate_item_cost_with_modifiers
+    result = calculate_item_cost_with_modifiers(recipe, [key])
+    if result is None:
+        raise HTTPException(404, f"Recipe '{recipe}' not found")
+    mod = result["modifiers"][0] if result["modifiers"] else {}
+    return {
+        "modifier_key": key,
+        "recipe": recipe,
+        "cost_impact": mod.get("cost_impact", 0),
+        "upcharge": mod.get("upcharge", 0),
+        "modifier_profit": mod.get("modifier_profit", 0),
+    }
+
+
+@app.get("/modifiers", tags=["UI"], response_class=HTMLResponse)
+def modifiers_ui():
+    with open("frontend/modifiers.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+
+@app.get("/recipes", tags=["UI"], response_class=HTMLResponse)
+def recipes_ui():
+    with open("frontend/recipes.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+
+# ── Bulk parse review endpoints ───────────────────────────────────────────────
+
+@app.get("/api/bulk-parse/queue", tags=["BulkParse"])
+def bulk_parse_queue():
+    from app.data_access.bulk_parse_repo import get_bulk_parse_review_queue
+    return get_bulk_parse_review_queue()
+
+
+@app.get("/api/bulk-parse/all", tags=["BulkParse"])
+def bulk_parse_all():
+    from app.data_access.bulk_parse_repo import get_all_parsed_items
+    return get_all_parsed_items()
+
+
+@app.put("/api/bulk-parse/{item_id}", tags=["BulkParse"])
+def bulk_parse_update(item_id: int, body: dict):
+    from app.data_access.bulk_parse_repo import update_invoice_item_bulk_parse
+    result = update_invoice_item_bulk_parse(item_id, body)
+    if result is None:
+        raise HTTPException(404, "Item not found")
+    return result
+
+
+@app.post("/api/bulk-parse/{item_id}/recalculate", tags=["BulkParse"])
+def bulk_parse_recalc(item_id: int):
+    from app.data_access.bulk_parse_repo import recalculate_invoice_item
+    result = recalculate_invoice_item(item_id)
+    if result is None:
+        raise HTTPException(404, "Item not found")
+    return result
+
+
+@app.post("/api/bulk-parse/{item_id}/approve", tags=["BulkParse"])
+def bulk_parse_approve(item_id: int):
+    from app.data_access.bulk_parse_repo import approve_invoice_item
+    result = approve_invoice_item(item_id)
+    if result is None:
+        raise HTTPException(404, "Item not found")
+    return result
+
+
+@app.get("/api/bulk-parse/history/{normalized_name}", tags=["BulkParse"])
+def bulk_parse_history(normalized_name: str):
+    from app.data_access.bulk_parse_repo import get_item_price_history
+    return get_item_price_history(normalized_name) or {}
+
+
+@app.post("/api/bulk-parse/backfill", tags=["BulkParse"])
+def bulk_parse_backfill():
+    from app.data_access.bulk_parse_repo import migrate_columns, backfill_bulk_parse
+    migrate_columns()
+    updated = backfill_bulk_parse()
+    return {"updated": updated}
+
+
+@app.get("/bulk-parse", tags=["UI"], response_class=HTMLResponse)
+def bulk_parse_ui():
+    with open("frontend/bulk_parse.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+
+@app.get("/api/sales/live", tags=["Sales"])
+def sales_live():
+    """Return cached sales snapshot + sync metadata. Never calls Square."""
+    return _build_sales_response()
+
+
+@app.post("/api/sales/refresh", tags=["Sales"])
+def sales_refresh():
+    """Trigger immediate sync, wait for it, return updated snapshot."""
+    from maillard.sync_loop import _do_sync
+    _do_sync()  # synchronous — blocks until done
+    return _build_sales_response()
 
 
 

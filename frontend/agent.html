@@ -292,6 +292,33 @@
   .status-dot.error { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.4); }
   .status-dot.starting { background: #9ca3af; box-shadow: none; }
 
+  .sync-bar {
+    display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-dim);
+  }
+  .sync-indicator { display: flex; align-items: center; gap: 5px; }
+  .sync-status-text { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .sync-status-text.live { color: var(--green); }
+  .sync-status-text.syncing { color: #60a5fa; }
+  .sync-status-text.delayed { color: #fbbf24; }
+  .sync-status-text.stale { color: #f97316; }
+  .sync-status-text.error { color: #ef4444; }
+  .sync-age { color: var(--text-dim); }
+  .sync-summary { color: var(--text-dim); border-left: 1px solid var(--border); padding-left: 8px; white-space: nowrap; }
+  .sync-refresh-btn {
+    background: none; border: 1px solid var(--border); color: var(--text-dim);
+    border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: 13px; line-height: 1;
+    transition: all 0.15s;
+  }
+  .sync-refresh-btn:hover { color: var(--green); border-color: var(--green); }
+  .sync-refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .sync-refresh-btn.spinning { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .sync-feedback {
+    font-size: 10px; transition: opacity 0.3s;
+  }
+  .sync-feedback.ok { color: var(--green); }
+  .sync-feedback.fail { color: #ef4444; }
+
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
 
   /* ── Messages ── */
@@ -844,9 +871,15 @@
       </div>
       <span class="topbar-badge" id="topbar-badge">Smart Mode</span>
       <div class="topbar-right">
-        <div class="topbar-status" id="sync-status" title="Square sales sync status" style="cursor:pointer" onclick="manualSync()">
-          <div class="status-dot" id="sync-dot"></div>
-          <span id="sync-label">Starting...</span>
+        <div class="sync-bar" id="sync-bar">
+          <div class="sync-indicator">
+            <div class="status-dot" id="sync-dot"></div>
+            <span class="sync-status-text" id="sync-status-text">Starting...</span>
+            <span class="sync-age" id="sync-age"></span>
+          </div>
+          <span class="sync-summary" id="sync-summary"></span>
+          <button class="sync-refresh-btn" id="sync-refresh-btn" onclick="manualSync()" title="Refresh sales now">&#8635;</button>
+          <span class="sync-feedback" id="sync-feedback"></span>
         </div>
       </div>
     </div>
@@ -1251,47 +1284,99 @@ function addRouteIndicator(label) {
   return el;
 }
 
-// ── Sync status polling ──
-function updateSyncStatus(data) {
+// ── Sales sync status ──
+let _lastSyncData = null;
+let _lastSyncFetchedAt = 0;
+
+function updateSyncUI(data) {
+  _lastSyncData = data;
+  _lastSyncFetchedAt = Date.now();
+
   const dot = document.getElementById('sync-dot');
-  const label = document.getElementById('sync-label');
+  const statusText = document.getElementById('sync-status-text');
+  const ageEl = document.getElementById('sync-age');
+  const summaryEl = document.getElementById('sync-summary');
   const status = data.status || 'starting';
-  const age = data.data_age_seconds || 0;
 
   dot.className = 'status-dot ' + status;
+  statusText.className = 'sync-status-text ' + status;
+  statusText.textContent = status === 'live' ? 'Live' : status === 'syncing' ? 'Syncing' : status === 'delayed' ? 'Delayed' : status === 'error' ? 'Error' : status === 'stale' ? 'Stale' : 'Starting';
 
-  if (status === 'live') label.textContent = 'Live (' + age + 's)';
-  else if (status === 'syncing') label.textContent = 'Syncing...';
-  else if (status === 'delayed') label.textContent = 'Delayed (' + age + 's)';
-  else if (status === 'stale') label.textContent = 'Stale (' + age + 's)';
-  else if (status === 'error') label.textContent = 'Sync error';
-  else label.textContent = 'Starting...';
+  _tickAge();
 
-  document.getElementById('sync-status').title =
-    'Square sync: ' + status +
-    (data.last_successful_sync ? '\nLast sync: ' + data.last_successful_sync.slice(11,19) + ' UTC' : '') +
-    (data.error_message ? '\nError: ' + data.error_message : '') +
-    '\nClick to refresh now';
+  // Sales summary from snapshot
+  const snap = data.sales_snapshot;
+  if (snap && snap.orders > 0) {
+    summaryEl.textContent = snap.orders + ' orders \u00b7 $' + (snap.revenue / 100).toFixed(0);
+  } else if (data.orders_synced > 0) {
+    summaryEl.textContent = data.orders_synced + ' orders';
+  } else {
+    summaryEl.textContent = '';
+  }
+}
+
+function _tickAge() {
+  const ageEl = document.getElementById('sync-age');
+  if (!_lastSyncData) return;
+  // Compute age: server age + time since we fetched
+  const serverAge = _lastSyncData.data_age_seconds || 0;
+  const localDrift = Math.round((Date.now() - _lastSyncFetchedAt) / 1000);
+  const age = serverAge + localDrift;
+  ageEl.textContent = '\u00b7 ' + age + 's ago';
+
+  // Update status color based on ticking age
+  const dot = document.getElementById('sync-dot');
+  const statusText = document.getElementById('sync-status-text');
+  let s;
+  if (_lastSyncData.consecutive_failures > 0) s = 'error';
+  else if (age <= 90) s = 'live';
+  else if (age <= 180) s = 'delayed';
+  else s = 'stale';
+  dot.className = 'status-dot ' + s;
+  statusText.className = 'sync-status-text ' + s;
+  statusText.textContent = s === 'live' ? 'Live' : s === 'delayed' ? 'Delayed' : s === 'stale' ? 'Stale' : 'Error';
+}
+
+function showFeedback(msg, ok) {
+  const el = document.getElementById('sync-feedback');
+  el.textContent = msg;
+  el.className = 'sync-feedback ' + (ok ? 'ok' : 'fail');
+  setTimeout(() => { el.textContent = ''; el.className = 'sync-feedback'; }, 4000);
 }
 
 async function pollSync() {
   try {
-    const res = await fetch(API + '/mcp/sync-status');
-    if (res.ok) updateSyncStatus(await res.json());
+    const res = await fetch(API + '/api/sales/live');
+    if (res.ok) updateSyncUI(await res.json());
   } catch(e) {}
 }
 
 async function manualSync() {
+  const btn = document.getElementById('sync-refresh-btn');
+  btn.disabled = true;
+  btn.classList.add('spinning');
+  showFeedback('', true);
   try {
-    document.getElementById('sync-label').textContent = 'Syncing...';
-    document.getElementById('sync-dot').className = 'status-dot syncing';
-    await fetch(API + '/mcp/sync-now', { method: 'POST' });
-    setTimeout(pollSync, 3000);
-  } catch(e) {}
+    const res = await fetch(API + '/api/sales/refresh', { method: 'POST' });
+    if (res.ok) {
+      const data = await res.json();
+      updateSyncUI(data);
+      showFeedback('Sales refreshed', true);
+    } else {
+      showFeedback('Refresh failed', false);
+    }
+  } catch(e) {
+    showFeedback('Refresh failed', false);
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('spinning');
+  }
 }
 
+// Poll every 10s, tick age every 1s
 pollSync();
 setInterval(pollSync, 10000);
+setInterval(_tickAge, 1000);
 
 // ── Init ──
 buildSidebar();

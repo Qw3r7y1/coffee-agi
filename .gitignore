@@ -12,3 +12,6 @@ data/chroma/
 
 data/sales.db
 data/.minute_sync.lock
+data/coffee_agi.db
+data/products.db
+data/recipe_drafts.json

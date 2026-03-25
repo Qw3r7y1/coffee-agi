@@ -146,11 +146,22 @@ def load_current_state() -> dict:
 
 
 def load_recipes() -> dict:
-    """Load recipe definitions from data/recipes.json.
+    """Load recipe definitions. DB first, falls back to recipes.json.
 
     Returns:
         {product: {ingredient: amount_per_unit, ...}, ...}
     """
+    # Try coffee_agi.db first
+    try:
+        from app.data_access.recipes_repo import get_all_recipes_dict
+        data = get_all_recipes_dict()
+        if data:
+            logger.info(f"[STATE] loaded {len(data)} recipes from coffee_agi.db")
+            return data
+    except Exception:
+        pass
+
+    # Fall back to JSON
     try:
         if not _RECIPES_FILE.exists():
             logger.warning(f"[STATE] {_RECIPES_FILE} not found")
@@ -160,7 +171,7 @@ def load_recipes() -> dict:
         if not isinstance(data, dict):
             return dict(_EMPTY_RECIPES)
 
-        logger.info(f"[STATE] loaded {len(data)} recipes")
+        logger.info(f"[STATE] loaded {len(data)} recipes from JSON")
         return data
 
     except Exception as e:

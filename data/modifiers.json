@@ -1,0 +1,81 @@
+{
+  "extra_shot": {
+    "display": "Extra Shot",
+    "type": "add",
+    "adds": [
+      {"ingredient_key": "espresso_beans_kg", "quantity": 0.022, "unit": "kg"}
+    ],
+    "upcharge": 0.75
+  },
+  "oat_milk": {
+    "display": "Oat Milk",
+    "type": "replace",
+    "removes": [
+      {"ingredient_key": "whole_milk_liters"}
+    ],
+    "adds": [
+      {"ingredient_key": "oat_milk_liters", "quantity_from_removed": true, "unit": "liters"}
+    ],
+    "upcharge": 0.50
+  },
+  "almond_milk": {
+    "display": "Almond Milk",
+    "type": "replace",
+    "removes": [
+      {"ingredient_key": "whole_milk_liters"}
+    ],
+    "adds": [
+      {"ingredient_key": "almond_milk_liters", "quantity_from_removed": true, "unit": "liters"}
+    ],
+    "upcharge": 0.50
+  },
+  "decaf": {
+    "display": "Decaf",
+    "type": "replace",
+    "removes": [
+      {"ingredient_key": "espresso_beans_kg"}
+    ],
+    "adds": [
+      {"ingredient_key": "decaf_beans_kg", "quantity_from_removed": true, "unit": "kg"}
+    ],
+    "upcharge": 0
+  },
+  "double_shot": {
+    "display": "Double Shot",
+    "type": "add",
+    "adds": [
+      {"ingredient_key": "espresso_beans_kg", "quantity": 0.022, "unit": "kg"}
+    ],
+    "upcharge": 1.00
+  },
+  "size_large": {
+    "display": "Large Size",
+    "type": "size_upgrade",
+    "scale_factor": 1.5,
+    "upcharge": 0.75
+  },
+  "whipped_cream": {
+    "display": "Whipped Cream",
+    "type": "add",
+    "adds": [
+      {"ingredient_key": "whipped_cream_ml", "quantity": 30, "unit": "ml"}
+    ],
+    "upcharge": 0.50
+  },
+  "vanilla_syrup": {
+    "display": "Vanilla Syrup",
+    "type": "add",
+    "adds": [
+      {"ingredient_key": "vanilla_syrup_ml", "quantity": 15, "unit": "ml"}
+    ],
+    "upcharge": 0.50
+  },
+  "caramel_syrup": {
+    "display": "Caramel Syrup",
+    "type": "add",
+    "adds": [
+      {"ingredient_key": "caramel_syrup_ml", "quantity": 15, "unit": "ml"}
+    ],
+    "upcharge": 0.50
+  }
+}

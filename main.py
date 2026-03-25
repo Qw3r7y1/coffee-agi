@@ -50,9 +50,13 @@ async def lifespan(app: FastAPI):
         from scripts.migrate_json_to_db import migrate
         migrate()
         logger.info("Central DB migrated from JSON + invoices.")
-    from app.data_access.bulk_parse_repo import migrate_columns, backfill_bulk_parse
+    from app.data_access.bulk_parse_repo import migrate_columns, backfill_bulk_parse, rebuild_ingredient_costs
     migrate_columns()
     backfill_bulk_parse()
+    rebuild_ingredient_costs()
+    from app.data_access.ingredient_resolver import build_aliases_from_invoices, seed_common_aliases
+    build_aliases_from_invoices()
+    seed_common_aliases()
     from maillard.sync_loop import start_sync
     start_sync(interval=60)
     logger.info("Coffee AGI starting — knowledge base loaded, intelligence DB ready, sales sync active.")
@@ -411,10 +415,29 @@ def bulk_parse_history(normalized_name: str):
 
 @app.post("/api/bulk-parse/backfill", tags=["BulkParse"])
 def bulk_parse_backfill():
-    from app.data_access.bulk_parse_repo import migrate_columns, backfill_bulk_parse
+    from app.data_access.bulk_parse_repo import migrate_columns, backfill_bulk_parse, rebuild_ingredient_costs
     migrate_columns()
     updated = backfill_bulk_parse()
-    return {"updated": updated}
+    rebuilt = rebuild_ingredient_costs()
+    return {"items_updated": updated, "ingredients_rebuilt": rebuilt}
+
+
+@app.post("/api/invoices/sync-dropbox", tags=["Invoices"])
+async def invoices_sync_dropbox():
+    """Trigger Dropbox invoice sync → parse → store → update ingredients."""
+    try:
+        from scripts.dropbox_connector import sync_dropbox_invoices
+        result = await sync_dropbox_invoices()
+        return result
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+
+@app.post("/api/invoices/refresh-downstream", tags=["Invoices"])
+def invoices_refresh_downstream():
+    """Re-run downstream cost/alias refresh without re-syncing."""
+    from app.data_access.invoice_ingest import refresh_downstream
+    return refresh_downstream()
 
 
 @app.get("/bulk-parse", tags=["UI"], response_class=HTMLResponse)

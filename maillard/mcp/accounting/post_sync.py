@@ -149,6 +149,16 @@ def post_sync_pipeline() -> dict:
         results["review_queue_count"] = 0
         logger.error(f"[POST-SYNC] Review queue check failed: {e}")
 
+    # 6. Refresh central DB downstream (ingredient costs, aliases, bulk parse)
+    try:
+        from app.data_access.invoice_ingest import refresh_downstream
+        downstream = refresh_downstream()
+        results["downstream_refresh"] = downstream
+        logger.info(f"[POST-SYNC] Downstream refresh: {downstream}")
+    except Exception as e:
+        results["downstream_refresh"] = {"error": str(e)}
+        logger.error(f"[POST-SYNC] Downstream refresh failed: {e}")
+
     logger.info(f"[POST-SYNC] Pipeline complete")
     results["pipeline_completed"] = True
     return results

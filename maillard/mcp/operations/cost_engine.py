@@ -128,21 +128,39 @@ def convert_units(quantity: float, from_unit: str, to_unit: str) -> float | None
 # ═══════════════════════════════════════════════════════════════════════════
 
 def get_ingredient_cost(ingredient_key: str) -> dict:
-    """Look up cost for an ingredient. Invoice DB first, then costs.json fallback.
+    """Look up cost for an ingredient using the canonical ingredient resolver.
+
+    Priority:
+      1. Exact ingredient_key match in DB
+      2. Alias resolution (maps generic keys like 'bakery_bag_or_wrapper' to canonical ingredients)
+      3. costs.json manual fallback
+
+    STRICT: Never returns raw invoice package price. Only derived per-unit costs.
 
     Returns:
-        {"unit_cost": float, "unit": str, "source": "invoice"|"manual"|"none"}
+        {"unit_cost": float, "unit": str, "source": str, "resolved_key": str}
     """
-    # 1. Check manual costs.json first (per-unit costs set by owner)
+    # 1. Try resolver (exact key -> alias -> fuzzy)
+    try:
+        from app.data_access.ingredient_resolver import resolve_ingredient
+        resolved = resolve_ingredient(ingredient_key)
+        if resolved and resolved.get("latest_unit_cost") and resolved["latest_unit_cost"] > 0:
+            return {
+                "unit_cost": resolved["latest_unit_cost"],
+                "unit": resolved.get("base_unit") or _infer_unit_from_key(ingredient_key),
+                "source": resolved.get("cost_source") or "db",
+                "vendor": resolved.get("vendor_name"),
+                "resolved_key": resolved.get("ingredient_key"),
+                "match_type": resolved.get("match_type"),
+            }
+    except Exception:
+        pass
+
+    # 2. Fallback to costs.json (manual per-unit costs)
     manual = _load("costs.json")
     if ingredient_key in manual:
         unit = _infer_unit_from_key(ingredient_key)
         return {"unit_cost": manual[ingredient_key], "unit": unit, "source": "manual"}
-
-    # 2. Try invoice DB (may have bulk/case pricing)
-    invoice_cost = _lookup_invoice_cost(ingredient_key)
-    if invoice_cost:
-        return invoice_cost
 
     return {"unit_cost": 0, "unit": "", "source": "none"}
 

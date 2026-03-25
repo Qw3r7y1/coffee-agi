@@ -19,10 +19,15 @@ def migrate_columns() -> None:
 
 
 def backfill_bulk_parse() -> int:
-    """Parse pack sizes and compute derived costs for all invoice items. Returns rows updated."""
+    """Parse pack sizes and compute derived costs for all invoice items.
+
+    Key rule: derived_unit_cost must be the cost PER SELLABLE UNIT, not per gram.
+    - Case of 42 croissants at $53 -> $1.2619/unit (not $0.0099/gram)
+    - Box of 1000 cups at $44.95 -> $0.04495/unit
+    - Milk at $4.95/gallon -> $4.95/gallon
+    """
     from maillard.mcp.accounting.invoice_intake import (
-        parse_pack_size, normalize_base_unit, convert_to_base_units,
-        _extract_count_from_name,
+        parse_pack_size, _extract_count_from_name,
     )
     conn = get_conn()
     rows = conn.execute("""
@@ -36,42 +41,62 @@ def backfill_bulk_parse() -> int:
         unit_price = r["unit_price"] or 0
         unit = r["unit"] or "ea"
         qty = r["quantity"] or 1
-        line_total = r["line_total"] or 0
+        line_total = r["line_total"] or (unit_price * qty)
 
-        # Parse pack
         pack = parse_pack_size(raw)
         count_from_name = _extract_count_from_name(raw)
 
         pack_count = None
         pack_text = None
         base_unit = None
-        total_base = None
+        total_items = None
         derived_cost = None
 
-        if pack:
+        if pack and pack["pack_count"] > 1 and unit in ("case", "box", "pack", "bag", "ea"):
+            # Case/box with N items inside -> cost per item
             pack_count = pack["pack_count"]
             pack_text = f"{pack['pack_count']}x{pack['per_unit_size']}{pack['per_unit_unit']}"
-            base = convert_to_base_units(qty, unit, pack["pack_count"],
-                                         pack["per_unit_size"], pack["per_unit_unit"])
-            base_unit = base["base_unit"]
-            total_base = base["total_base_units"]
+            total_items = qty * pack_count
+            base_unit = "unit"
+            if total_items > 0 and line_total > 0:
+                derived_cost = round(line_total / total_items, 5)
         elif count_from_name and count_from_name > 1 and unit in ("box", "case", "pack", "bag"):
+            # Count from name (e.g., "Cup - 1,000")
             pack_count = count_from_name
             pack_text = f"{count_from_name} per {unit}"
-            total_base = qty * count_from_name
+            total_items = qty * count_from_name
             base_unit = "unit"
-
-        # Derive single-unit cost
-        if total_base and total_base > 0 and line_total > 0:
-            derived_cost = round(line_total / total_base, 5)
-        elif unit_price > 0 and pack_count and pack_count > 1:
-            derived_cost = round(unit_price / pack_count, 5)
+            if total_items > 0 and line_total > 0:
+                derived_cost = round(line_total / total_items, 5)
+        elif pack and pack["pack_count"] == 1:
+            # Single item with weight (e.g., "5lb bag") -> cost per weight unit
+            pack_count = 1
+            per_size = pack["per_unit_size"]
+            per_unit = pack["per_unit_unit"]
+            pack_text = f"{per_size}{per_unit}"
+            base_unit = per_unit
+            total_items = qty * per_size
+            if total_items > 0 and line_total > 0:
+                derived_cost = round(line_total / total_items, 5)
+        elif unit in ("lb", "kg", "oz", "gal", "L"):
+            # Already priced per weight/volume unit
+            pack_count = 1
+            base_unit = unit
+            total_items = qty
+            derived_cost = unit_price  # already per unit
+        else:
+            # Simple ea pricing
+            pack_count = 1
+            base_unit = "unit"
+            total_items = qty
+            if qty > 0 and line_total > 0:
+                derived_cost = round(line_total / qty, 5)
 
         conn.execute("""
             UPDATE invoice_items SET pack_count=?, pack_size_text=?, base_unit=?,
                 total_base_units=?, derived_unit_cost=?
             WHERE id=?
-        """, (pack_count, pack_text, base_unit, total_base, derived_cost, r["id"]))
+        """, (pack_count, pack_text, base_unit, total_items, derived_cost, r["id"]))
         updated += 1
 
     conn.commit()
@@ -195,25 +220,93 @@ def recalculate_invoice_item(item_id: int) -> dict | None:
 
 
 def approve_invoice_item(item_id: int) -> dict | None:
-    """Mark item as reviewed: review_required=0, confidence=high."""
+    """Mark item as reviewed and push derived_unit_cost into ingredients table."""
     conn = get_conn()
-    item = conn.execute("SELECT * FROM invoice_items WHERE id=?", (item_id,)).fetchone()
-    if not item:
+    row = conn.execute("""
+        SELECT ii.*, i.vendor, i.invoice_date
+        FROM invoice_items ii JOIN invoices i ON ii.invoice_id = i.id
+        WHERE ii.id=?
+    """, (item_id,)).fetchone()
+    if not row:
         conn.close()
         return None
+
     conn.execute("UPDATE invoice_items SET review_required=0, confidence='high' WHERE id=?", (item_id,))
+
+    # Push derived cost into ingredients table
+    derived = row["derived_unit_cost"]
+    norm_name = row["normalized_name"]
+    base_unit = row["base_unit"] or "unit"
+    vendor = row["vendor"]
+    inv_date = row["invoice_date"]
+
+    if derived and derived > 0 and norm_name:
+        # Normalize the key
+        import re
+        ing_key = re.sub(r"[^a-z0-9]+", "_", norm_name.lower()).strip("_")
+
+        conn.execute("""
+            INSERT INTO ingredients (ingredient_key, display_name, base_unit, latest_unit_cost, cost_source, vendor_name, invoice_date, updated_at)
+            VALUES (?, ?, ?, ?, 'invoice_approved', ?, ?, ?)
+            ON CONFLICT(ingredient_key) DO UPDATE SET
+                latest_unit_cost=excluded.latest_unit_cost, base_unit=excluded.base_unit,
+                cost_source='invoice_approved', vendor_name=excluded.vendor_name,
+                invoice_date=excluded.invoice_date, updated_at=excluded.updated_at
+        """, (ing_key, norm_name, base_unit, derived, vendor, inv_date, now_iso()))
+
     conn.commit()
-
-    # Update ingredient cost in ingredients table if normalized_name matches
-    if item["derived_unit_cost"] and item["derived_unit_cost"] > 0:
-        from app.data_access.ingredients_repo import list_ingredients
-        # Simple match: check if any ingredient key is close to normalized_name
-        # This is optional — exact matching only
-        pass
-
-    row = conn.execute("SELECT * FROM invoice_items WHERE id=?", (item_id,)).fetchone()
+    result = conn.execute("SELECT * FROM invoice_items WHERE id=?", (item_id,)).fetchone()
     conn.close()
-    return dict(row)
+    return dict(result)
+
+
+def rebuild_ingredient_costs() -> int:
+    """Rebuild ALL ingredient costs from approved/high-confidence bulk parse rows.
+
+    For each normalized item, takes the latest invoice with confidence=high.
+    Updates ingredients.latest_unit_cost with derived_unit_cost.
+    """
+    import re
+    conn = get_conn()
+    now = now_iso()
+
+    # Get latest derived cost per normalized_name (confidence=high only)
+    rows = conn.execute("""
+        SELECT ii.normalized_name, ii.derived_unit_cost, ii.base_unit,
+               i.vendor, i.invoice_date,
+               MAX(ii.id) as latest_id
+        FROM invoice_items ii
+        JOIN invoices i ON ii.invoice_id = i.id
+        WHERE ii.derived_unit_cost > 0 AND ii.derived_unit_cost IS NOT NULL
+          AND ii.confidence = 'high'
+        GROUP BY ii.normalized_name
+        ORDER BY ii.normalized_name
+    """).fetchall()
+
+    updated = 0
+    for r in rows:
+        norm = r["normalized_name"]
+        if not norm:
+            continue
+        ing_key = re.sub(r"[^a-z0-9]+", "_", norm.lower()).strip("_")
+        base_unit = r["base_unit"] or "unit"
+        cost = r["derived_unit_cost"]
+        vendor = r["vendor"]
+        inv_date = r["invoice_date"]
+
+        conn.execute("""
+            INSERT INTO ingredients (ingredient_key, display_name, base_unit, latest_unit_cost, cost_source, vendor_name, invoice_date, updated_at)
+            VALUES (?, ?, ?, ?, 'invoice_approved', ?, ?, ?)
+            ON CONFLICT(ingredient_key) DO UPDATE SET
+                latest_unit_cost=excluded.latest_unit_cost, base_unit=excluded.base_unit,
+                cost_source='invoice_approved', vendor_name=excluded.vendor_name,
+                invoice_date=excluded.invoice_date, updated_at=excluded.updated_at
+        """, (ing_key, norm, base_unit, cost, vendor, inv_date, now))
+        updated += 1
+
+    conn.commit()
+    conn.close()
+    return updated
 
 
 def validate_bulk_parse(item: dict) -> list[str]:

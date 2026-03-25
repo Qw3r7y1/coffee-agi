@@ -51,50 +51,64 @@
     }
   },
   "sales_today": {
-    "freddo_espresso": 30,
+    "freddo_espresso": 32,
     "butter_croissant": 6,
-    "cappuccino": 5,
+    "cappuccino": 6,
+    "latte": 5,
     "filter_coffee": 3,
-    "latte": 3,
+    "freddo_cappuccino": 3,
+    "homemade_spinach_pie": 3,
+    "japanese_style_iced_coffee": 3,
+    "loux": 3,
+    "nutella": 3,
+    "americano": 2,
+    "apple_turnover": 2,
     "cheese_pie": 2,
-    "homemade_spinach_pie": 2,
-    "japanese_style_iced_coffee": 2,
-    "americano": 1,
+    "cold_brew": 2,
+    "peinirli": 2,
     "bougatsa": 1,
     "chai": 1,
     "chocolate_chip_cookie": 1,
     "espresso": 1,
-    "freddo_cappuccino": 1,
+    "fruit_danish": 1,
     "hot_chocolate": 1,
     "koulouri_cheese": 1,
-    "theoni": 1
+    "theoni": 1,
+    "turkey_and_pesto": 1
   },
   "sales_amounts": {
-    "freddo_espresso": 15332,
+    "freddo_espresso": 16312,
     "butter_croissant": 3320,
-    "cappuccino": 2804,
+    "cappuccino": 3343,
+    "latte": 3348,
     "filter_coffee": 1062,
-    "latte": 2096,
+    "freddo_cappuccino": 1617,
+    "homemade_spinach_pie": 2205,
+    "japanese_style_iced_coffee": 1617,
+    "loux": 1062,
+    "nutella": 3740,
+    "americano": 926,
+    "apple_turnover": 1034,
     "cheese_pie": 1415,
-    "homemade_spinach_pie": 1470,
-    "japanese_style_iced_coffee": 1078,
-    "americano": 463,
+    "cold_brew": 1224,
+    "peinirli": 1732,
     "bougatsa": 735,
     "chai": 571,
     "chocolate_chip_cookie": 463,
     "espresso": 430,
-    "freddo_cappuccino": 539,
+    "fruit_danish": 735,
     "hot_chocolate": 517,
     "koulouri_cheese": 707,
-    "theoni": 245
+    "theoni": 245,
+    "turkey_and_pesto": 898
   },
   "top_items": [
     {
       "name": "freddo_espresso",
       "display": "Freddo Espresso",
       "category": "drink",
-      "qty": 30,
-      "revenue_cents": 15332
+      "qty": 32,
+      "revenue_cents": 16312
     },
     {
       "name": "butter_croissant",
@@ -107,8 +121,15 @@
       "name": "cappuccino",
       "display": "Cappuccino",
       "category": "drink",
+      "qty": 6,
+      "revenue_cents": 3343
+    },
+    {
+      "name": "latte",
+      "display": "Latte",
+      "category": "drink",
       "qty": 5,
-      "revenue_cents": 2804
+      "revenue_cents": 3348
     },
     {
       "name": "filter_coffee",
@@ -118,11 +139,53 @@
       "revenue_cents": 1062
     },
     {
-      "name": "latte",
-      "display": "Latte",
+      "name": "freddo_cappuccino",
+      "display": "Freddo Cappuccino",
       "category": "drink",
       "qty": 3,
-      "revenue_cents": 2096
+      "revenue_cents": 1617
+    },
+    {
+      "name": "homemade_spinach_pie",
+      "display": "Homemade Spinach Pie",
+      "category": "other",
+      "qty": 3,
+      "revenue_cents": 2205
+    },
+    {
+      "name": "japanese_style_iced_coffee",
+      "display": "Japanese style Iced Coffee",
+      "category": "other",
+      "qty": 3,
+      "revenue_cents": 1617
+    },
+    {
+      "name": "loux",
+      "display": "Loux",
+      "category": "other",
+      "qty": 3,
+      "revenue_cents": 1062
+    },
+    {
+      "name": "nutella",
+      "display": "Nutella",
+      "category": "other",
+      "qty": 3,
+      "revenue_cents": 3740
+    },
+    {
+      "name": "americano",
+      "display": "Americano",
+      "category": "drink",
+      "qty": 2,
+      "revenue_cents": 926
+    },
+    {
+      "name": "apple_turnover",
+      "display": "Apple turnover",
+      "category": "other",
+      "qty": 2,
+      "revenue_cents": 1034
     },
     {
       "name": "cheese_pie",
@@ -132,25 +195,18 @@
       "revenue_cents": 1415
     },
     {
-      "name": "homemade_spinach_pie",
-      "display": "Homemade Spinach Pie",
-      "category": "other",
-      "qty": 2,
-      "revenue_cents": 1470
-    },
-    {
-      "name": "japanese_style_iced_coffee",
-      "display": "Japanese style Iced Coffee",
-      "category": "other",
-      "qty": 2,
-      "revenue_cents": 1078
-    },
-    {
-      "name": "americano",
-      "display": "Americano",
+      "name": "cold_brew",
+      "display": "Cold Brew",
       "category": "drink",
-      "qty": 1,
-      "revenue_cents": 463
+      "qty": 2,
+      "revenue_cents": 1224
+    },
+    {
+      "name": "peinirli",
+      "display": "Peinirli",
+      "category": "other",
+      "qty": 2,
+      "revenue_cents": 1732
     },
     {
       "name": "bougatsa",
@@ -181,11 +237,11 @@
       "revenue_cents": 430
     },
     {
-      "name": "freddo_cappuccino",
-      "display": "Freddo Cappuccino",
-      "category": "drink",
+      "name": "fruit_danish",
+      "display": "Fruit danish",
+      "category": "other",
       "qty": 1,
-      "revenue_cents": 539
+      "revenue_cents": 735
     },
     {
       "name": "hot_chocolate",
@@ -207,13 +263,20 @@
       "category": "other",
       "qty": 1,
       "revenue_cents": 245
+    },
+    {
+      "name": "turkey_and_pesto",
+      "display": "Turkey And Pesto",
+      "category": "other",
+      "qty": 1,
+      "revenue_cents": 898
     }
   ],
-  "raw_order_count": 33,
+  "raw_order_count": 46,
   "business_date": "2026-03-25",
   "location_id": "LNZ6BS56ANE9F",
   "source": "sqlite",
-  "snapshot_generated_at": "2026-03-25T17:14:13.511459+00:00",
-  "last_square_sync_at": "2026-03-25T17:14:13.497420+00:00",
+  "snapshot_generated_at": "2026-03-25T20:06:41.891144+00:00",
+  "last_square_sync_at": "2026-03-25T20:06:41.876290+00:00",
   "freshness_seconds": 0
 }

@@ -112,6 +112,16 @@ def init_db() -> None:
             derived_unit_cost REAL
         );
         CREATE INDEX IF NOT EXISTS ix_ii_inv ON invoice_items(invoice_id);
+
+        CREATE TABLE IF NOT EXISTS ingredient_aliases (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            ingredient_key  TEXT NOT NULL REFERENCES ingredients(ingredient_key),
+            alias_text      TEXT NOT NULL,
+            source_type     TEXT NOT NULL DEFAULT 'manual',
+            created_at      TEXT
+        );
+        CREATE INDEX IF NOT EXISTS ix_ia_key ON ingredient_aliases(ingredient_key);
+        CREATE INDEX IF NOT EXISTS ix_ia_alias ON ingredient_aliases(alias_text);
         CREATE INDEX IF NOT EXISTS ix_ii_norm ON invoice_items(normalized_name);
     """)
     conn.close()

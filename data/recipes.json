@@ -95,5 +95,25 @@
     "chocolate powder": 15,
     "whole milk": 200,
     "sleeve": 1
+  },
+  "muffin": {
+    "bakery_item_wholesale": 1
+  },
+  "koulouri_cheese": {
+    "koulouri cheese": 1,
+    "pastry bag": 1
+  },
+  "butter_croissant": {
+    "all_butler_croissant_rtd_4_5_oz_42": 1,
+    "kraft_pastry_dry_wax_bag_6_5x8_2_000": 1,
+    "black_beverage_napkins_1_000": 2
+  },
+  "fruit_danish": {
+    "dan_assorted_fruit_danish": 1,
+    "kraft_pastry_dry_wax_bag_6_5x8_2_000": 2
+  },
+  "bougatsa": {
+    "rodouia_bougatsa_with_vanilla_cream": 1,
+    "pas": 1
   }
 }

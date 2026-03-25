@@ -1076,4 +1076,12 @@ def ingest_invoice(source: str | dict) -> dict:
     except Exception as e:
         result["db_storage"] = {"status": "error", "message": str(e)}
 
+    # Central DB (coffee_agi.db) — updates ingredients, aliases, derived costs
+    try:
+        from app.data_access.invoice_ingest import post_ingest_to_central_db
+        central_result = post_ingest_to_central_db(result)
+        result["central_db"] = central_result
+    except Exception as e:
+        result["central_db"] = {"status": "error", "message": str(e)}
+
     return result
